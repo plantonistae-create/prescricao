@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prescrição Médica — Leito de Observação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16292b;
+    --teal:#0e5c5c;
+    --teal-dark:#0a4444;
+    --teal-tint:#e9f3f1;
+    --teal-tint-2:#dcecea;
+    --slate:#6d7f80;
+    --line:#c9d6d5;
+    --amber:#c17a2e;
+    --amber-tint:#faf0e2;
+    --paper:#fffefb;
+    --danger:#a83e3e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--teal-tint);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .topbar{
+    background:var(--teal-dark);
+    color:#fff;
+    padding:18px 28px;
+    display:flex;
+    align-items:baseline;
+    gap:14px;
+    border-bottom:4px solid var(--amber);
+  }
+  .topbar h1{
+    font-family:'Barlow Semi Condensed',sans-serif;
+    font-size:22px;
+    font-weight:700;
+    letter-spacing:0.02em;
+    margin:0;
+    text-transform:uppercase;
+  }
+  .topbar span{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:#bcd9d4;
+  }
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:24px 20px 80px;
+    display:grid;
+    grid-template-columns:280px 1fr;
+    gap:20px;
+  }
+  @media (max-width: 860px){
+    .wrap{grid-template-columns:1fr;}
+  }
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:18px;
+    margin-bottom:18px;
+  }
+  .card h2{
+    font-family:'Barlow Semi Condensed',sans-serif;
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--teal-dark);
+    margin:0 0 12px;
+    padding-bottom:8px;
+    border-bottom:2px solid var(--teal-tint-2);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .field{margin-bottom:12px;}
+  .field label{
+    display:block;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--slate);
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    padding:8px 10px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;
+    color:var(--ink);
+    background:#fff;
+  }
+  .field textarea{font-family:'Inter',sans-serif; resize:vertical;}
+  .sidebar-note{
+    font-size:11.5px;
+    color:var(--slate);
+    line-height:1.5;
+    margin-top:4px;
+  }
+
+  /* Medication list */
+  .med-lib{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .med-chip{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    padding:6px 11px;
+    border:1px solid var(--teal);
+    color:var(--teal-dark);
+    background:#fff;
+    border-radius:20px;
+    cursor:pointer;
+    transition:.12s;
+  }
+  .med-chip:hover{background:var(--teal-tint-2);}
+  .add-custom{
+    display:flex;
+    gap:8px;
+    margin-bottom:16px;
+  }
+  .add-custom input{flex:1;}
+  .btn{
+    font-family:'Barlow Semi Condensed',sans-serif;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    font-size:12.5px;
+    padding:9px 16px;
+    border-radius:4px;
+    border:none;
+    cursor:pointer;
+    transition:.12s;
+  }
+  .btn-teal{background:var(--teal); color:#fff;}
+  .btn-teal:hover{background:var(--teal-dark);}
+  .btn-ghost{background:transparent; color:var(--teal-dark); border:1px solid var(--teal);}
+  .btn-ghost:hover{background:var(--teal-tint-2);}
+  .btn-danger{background:transparent; color:var(--danger); border:1px solid var(--danger); padding:5px 9px; font-size:11px;}
+
+  .med-row{
+    border:1px solid var(--line);
+    border-left:4px solid var(--teal);
+    border-radius:5px;
+    padding:12px 14px;
+    margin-bottom:10px;
+    background:#fff;
+    position:relative;
+  }
+  .med-row-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .med-num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--slate);
+    background:var(--teal-tint);
+    border-radius:3px;
+    padding:2px 6px;
+    margin-right:6px;
+  }
+  .med-name-input{
+    font-family:'Barlow Semi Condensed',sans-serif;
+    font-weight:600;
+    font-size:16px;
+    border:none;
+    border-bottom:1px dashed var(--line);
+    padding:2px 2px 4px;
+    flex:1;
+    background:transparent;
+  }
+  .med-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr 1fr;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  @media (max-width:700px){ .med-grid{grid-template-columns:1fr 1fr;} }
+  .med-grid .mini-field label{
+    font-size:9.5px; color:var(--slate); text-transform:uppercase; letter-spacing:.03em; display:block; margin-bottom:2px;
+  }
+  .med-grid .mini-field input, .med-grid .mini-field select{
+    width:100%; padding:6px 7px; border:1px solid var(--line); border-radius:4px;
+    font-family:'IBM Plex Mono',monospace; font-size:12.5px;
+  }
+  .obs-row{display:flex; gap:8px; align-items:center;}
+  .obs-row input{flex:1; padding:6px 8px; border:1px solid var(--line); border-radius:4px; font-size:12.5px; font-family:'Inter',sans-serif;}
+  .obs-tags{display:flex; gap:5px; flex-wrap:wrap; margin-top:6px;}
+  .obs-tag{
+    font-size:10.5px; padding:3px 8px; border-radius:12px; border:1px solid var(--amber); color:var(--amber);
+    background:var(--amber-tint); cursor:pointer;
+  }
+  .aprazo-stamp{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10.5px;
+    font-weight:600;
+    border:1.5px solid var(--teal-dark);
+    color:var(--teal-dark);
+    border-radius:3px;
+    padding:2px 7px;
+    transform:rotate(-2deg);
+    letter-spacing:.03em;
+    margin-left:auto;
+  }
+
+  /* checklist sections */
+  .check-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px 14px;
+  }
+  @media (max-width:700px){.check-grid{grid-template-columns:1fr;}}
+  .check-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:13px;
+    padding:6px 0;
+    border-bottom:1px solid #f0f0ec;
+  }
+  .check-item input[type=checkbox]{width:16px; height:16px; accent-color:var(--teal);}
+  .check-item input[type=text]{
+    flex:1; border:none; border-bottom:1px dashed var(--line); font-size:12.5px;
+    font-family:'IBM Plex Mono',monospace; padding:2px 2px;
+  }
+
+  .footer-actions{
+    position:sticky;
+    bottom:0;
+    background:linear-gradient(180deg, transparent, var(--teal-tint) 30%);
+    padding:20px 0 6px;
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+  }
+  .footer-actions .btn{padding:12px 26px; font-size:14px;}
+
+  .empty-msg{font-size:12.5px; color:var(--slate); font-style:italic; padding:6px 0;}
+
+  /* ============ PRINT SHEET ============ */
+  #printSheet{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printSheet, #printSheet *{visibility:visible;}
+    #printSheet{
+      display:block;
+      position:absolute; top:0; left:0; width:100%;
+      padding:14mm;
+      font-family:'Inter',sans-serif;
+      color:#000;
+    }
+    .no-print{display:none !important;}
+  }
+  .ps-headtable{width:100%; border-collapse:collapse; font-size:11px; margin-bottom:0;}
+  .ps-headtable td{border:1px solid #000; padding:5px 8px;}
+  .ps-headtable .ps-bold{font-weight:700;}
+  .ps-headtable .ps-blank{width:6%;}
+  .ps-patient{width:100%; border-collapse:collapse; font-size:11.5px; margin-bottom:10px; border-top:none;}
+  .ps-patient td{border:1px solid #000; border-top:none; padding:6px 8px; font-weight:700; font-size:11px;}
+  .ps-patient td span{font-weight:400; margin-left:4px;}
+  .ps-main{width:100%; border-collapse:collapse; font-size:11px;}
+  .ps-main th{border:1px solid #000; padding:5px 6px; font-weight:700; font-size:10.5px; text-align:left;}
+  .ps-main td{border:1px solid #000; padding:6px 6px; vertical-align:top; height:22px;}
+  .ps-main .rownum{font-weight:700;}
+  .ps-section-row td{background:#f2f2f2; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.03em; padding:4px 6px;}
+  .ps-sign{margin-top:34px; display:flex; justify-content:space-between; font-size:11px;}
+  .ps-sign div{width:45%; border-top:1px solid #000; padding-top:4px; text-align:center;}
+</style>
+</head>
+<body>
+
+<div class="topbar no-print">
+  <h1>Prescrição Médica</h1>
+  <span>ENF. URG-RG-04 · Leito de Observação</span>
+</div>
+
+<div class="wrap no-print">
+
+  <!-- SIDEBAR: patient data -->
+  <div>
+    <div class="card">
+      <h2>Paciente</h2>
+      <div class="field">
+        <label>Nome do paciente</label>
+        <input id="pName" type="text" placeholder="Nome completo">
+      </div>
+      <div class="field">
+        <label>Idade</label>
+        <input id="pAge" type="text" placeholder="Ex: 34 anos">
+      </div>
+      <div class="field">
+        <label>CPF / CNS</label>
+        <input id="pDoc" type="text" placeholder="000.000.000-00">
+      </div>
+      <div class="field">
+        <label>Data</label>
+        <input id="pDate" type="date">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Alta</h2>
+      <div class="check-item">
+        <input type="checkbox" id="altaCheck">
+        <label for="altaCheck" style="font-size:12.5px;">Alta após conduta acima</label>
+      </div>
+      <div class="field" style="margin-top:8px;">
+        <label>Observações da alta</label>
+        <textarea id="altaObs" rows="2" placeholder="ex: se melhora clínica, retorno se piora..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN COLUMN -->
+  <div>
+
+    <div class="card">
+      <h2>Medicações</h2>
+      <div class="sidebar-note" style="margin-bottom:10px;">Pesquise e clique para adicionar da biblioteca padrão, edite dose/diluição/aprazamento e observação de cada item.</div>
+      <div class="field" style="margin-bottom:10px;">
+        <input id="medSearch" type="text" placeholder="🔍 Pesquisar medicação..." oninput="renderLib()">
+      </div>
+      <div class="med-lib" id="medLib"></div>
+      <div id="medLibEmpty" class="empty-msg" style="display:none;">Nenhuma medicação encontrada na biblioteca — use o campo abaixo para adicionar.</div>
+      <div class="add-custom">
+        <input id="customMedName" type="text" placeholder="Adicionar outra medicação...">
+        <button class="btn btn-teal" onclick="addCustomMed()">+ Adicionar</button>
+      </div>
+      <div id="medList"></div>
+      <div id="medEmpty" class="empty-msg">Nenhuma medicação selecionada ainda.</div>
+    </div>
+
+    <div class="card">
+      <h2>Sinais Vitais</h2>
+      <div class="check-grid" id="vitalsGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2>Cuidados Gerais</h2>
+      <div class="check-grid" id="cuidadosGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2>Coleta de Exames</h2>
+      <div class="check-grid" id="examesGrid"></div>
+      <div class="add-custom" style="margin-top:10px;">
+        <input id="customExame" type="text" placeholder="Adicionar outro exame...">
+        <button class="btn btn-ghost" onclick="addCustomExam()">+ Adicionar</button>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <button class="btn btn-ghost" onclick="location.reload()">Limpar tudo</button>
+      <button class="btn btn-teal" onclick="gerarImpressao()">Gerar prescrição para impressão →</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ PRINT SHEET (hidden until gerado) — replica o modelo Word enviado ============ -->
+<div id="printSheet">
+  <table class="ps-headtable">
+    <tr>
+      <td class="ps-blank"></td>
+      <td class="ps-bold">ENF. URG-RG-04</td>
+      <td>Versão 05</td>
+      <td class="ps-blank"></td>
+    </tr>
+    <tr>
+      <td class="ps-blank"></td>
+      <td class="ps-bold">FICHA DO PACIENTE NO LEITO DE OBSERVAÇÃO</td>
+      <td>Data Revisão: 23/09/2019</td>
+      <td class="ps-blank"></td>
+    </tr>
+  </table>
+
+  <table class="ps-patient">
+    <tr>
+      <td style="width:65%;">PACIENTE: <span id="ps_name"></span></td>
+      <td>DATA: <span id="ps_date"></span></td>
+    </tr>
+    <tr>
+      <td>IDADE: <span id="ps_age"></span></td>
+      <td>CPF/CNS: <span id="ps_doc"></span></td>
+    </tr>
+  </table>
+
+  <table class="ps-main">
+    <thead>
+      <tr>
+        <th style="width:12%;">Data Hora</th>
+        <th style="width:44%;">Prescrição Médica</th>
+        <th style="width:14%;">Horário</th>
+        <th style="width:30%;">Observação Médica</th>
+      </tr>
+    </thead>
+    <tbody id="ps_rows"></tbody>
+  </table>
+
+  <div class="ps-sign">
+    <div>Assinatura e carimbo do médico</div>
+    <div>Assinatura do enfermeiro(a) responsável</div>
+  </div>
+</div>
+
+<script>
+/* ============ DATA ============ */
+const MED_LIBRARY = [
+  // Soros / veículos
+  {name:"SF 0,9%", dose:"500mL", via:"EV"},
+  {name:"SF 0,9%", dose:"100mL", via:"EV"},
+  {name:"SG 5%", dose:"500mL", via:"EV"},
+
+  // Analgésicos / antitérmicos / anti-inflamatórios
+  {name:"Dipirona 500mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"diluir em 100mL SF 0,9%, infundir em 15-20min"},
+  {name:"Cetoprofeno 100mg", dose:"1 frasco-ampola", via:"EV", dil:"diluir em 100mL SF 0,9%, infundir em 20-30min"},
+  {name:"Cetorolaco 30mg/mL", dose:"1 ampola (1mL)", via:"EV", dil:"diluir em 50-100mL SF 0,9%, infundir em 15-20min (ou IM direto)"},
+  {name:"Tramadol 50mg/mL", dose:"1 ampola (1-2mL)", via:"EV", dil:"diluir em 100mL SF 0,9%, infundir lento (risco de náusea/hipotensão se rápido)"},
+  {name:"Diclofenaco 75mg/3mL", dose:"1 ampola", via:"IM", dil:"aplicar IM profundo, sem diluição; não usar EV"},
+  {name:"Morfina 10mg/mL", dose:"1 ampola, diluir e titular conforme dor", via:"EV", dil:"diluir 1 ampola em 9mL AD (1mg/mL), administrar lento em bolus titulado"},
+  {name:"Paracetamol 10mg/mL (frasco 100mL)", dose:"1 frasco (1000mg)", via:"EV", dil:"infundir puro em 15min (não diluir)"},
+
+  // Antieméticos / antiespasmódicos / gastro
+  {name:"Bromoprida 5mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"EV direto lento ou diluir em 20mL SF 0,9%"},
+  {name:"Metoclopramida 5mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"diluir em 10-20mL SF 0,9%, infundir lento (min. 3min)"},
+  {name:"Ondansetrona 2mg/mL", dose:"1 ampola (4mg/2mL)", via:"EV", dil:"diluir em 20-50mL SF 0,9%, infundir em 15min"},
+  {name:"Escopolamina 20mg/mL", dose:"1 ampola (1mL)", via:"EV", dil:"EV direto lento ou diluir em 10-20mL SF 0,9%"},
+  {name:"Omeprazol 40mg", dose:"1 frasco-ampola", via:"EV", dil:"diluir em 10mL AD (bolus) ou 100mL SF 0,9% (infusão 20-30min)"},
+  {name:"Ranitidina 25mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"diluir em 20mL SF 0,9%, infundir lento (min. 5min)"},
+
+  // Corticoides
+  {name:"Hidrocortisona 500mg", dose:"1 frasco-ampola", via:"EV", dil:"diluir no diluente próprio, depois em 50-100mL SF 0,9%"},
+  {name:"Dexametasona 4mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"EV direto ou diluir em 10mL SF 0,9%"},
+  {name:"Metilprednisolona 500mg", dose:"1 frasco-ampola", via:"EV", dil:"diluir em 100-250mL SF 0,9%, infundir em 30-60min"},
+
+  // Respiratório
+  {name:"Salbutamol spray/solução", dose:"2,5-5mg (10-20 gotas)", via:"Inalatória", dil:"diluir em 3-5mL SF 0,9% para nebulização"},
+  {name:"Ipratrópio (Atrovent)", dose:"20-40 gotas", via:"Inalatória", dil:"diluir em 3-5mL SF 0,9%, associar ao salbutamol se prescrito"},
+
+  // Emergência / cardio / SNC
+  {name:"Adrenalina 1mg/mL (1:1000)", dose:"0,3-0,5mg", via:"IM", dil:"aplicar IM (vasto lateral da coxa), sem diluição — anafilaxia"},
+  {name:"Glicose 50% hipertônica", dose:"1-2 ampolas (20-40mL)", via:"EV", dil:"EV direto lento — hipoglicemia sintomática"},
+  {name:"Furosemida 10mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"EV direto lento (2-4min) ou diluir em 10mL SF 0,9%"},
+  {name:"Diazepam 5mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"EV direto lento — não diluir (risco de precipitação)"},
+  {name:"Midazolam 5mg/mL", dose:"1 ampola (3mL), titular", via:"EV", dil:"diluir em 10mL SF 0,9%, titular lentamente"},
+  {name:"Sulfato de Magnésio 10%", dose:"conforme protocolo (ex: 4g ataque)", via:"EV", dil:"diluir em 100mL SF 0,9%, infundir em 20min — eclâmpsia/broncoespasmo grave"},
+  {name:"Captopril 25mg", dose:"1 comprimido", via:"VO/SL", dil:"via oral ou sublingual, sem diluição"},
+];
+
+const APRAZO_OPTS = ["AGORA","6/6h","8/8h","12/12h","1x ao dia","SN (se necessário)"];
+
+const OBS_TAGS = ["se dor","se náuseas ou vômitos","se febre","se agitação"];
+
+let meds = []; // {id, name, dose, via, dil, aprazo, obs}
+let medSeq = 0;
+
+const VITALS_DEFAULT = ["Aferir PA, FC, FR, SatO2, Tax", "Reavaliar sinais vitais em 1h", "Glicemia capilar", "Monitorização contínua"];
+const CUIDADOS_DEFAULT = ["Jejum", "Dieta livre conforme aceitação", "Decúbito elevado (30-45°)", "Acesso venoso periférico", "Controle de diurese", "Repouso no leito"];
+const EXAMES_DEFAULT = ["Hemograma completo", "PCR", "Função renal (ureia/creatinina)", "Eletrólitos (Na/K)", "EAS (urina tipo I)", "Amilase/Lipase", "USG de abdome"];
+
+let vitals = VITALS_DEFAULT.map((t,i)=>({id:'v'+i, text:t, checked:false}));
+let cuidados = CUIDADOS_DEFAULT.map((t,i)=>({id:'c'+i, text:t, checked:false}));
+let exames = EXAMES_DEFAULT.map((t,i)=>({id:'e'+i, text:t, checked:false}));
+
+/* ============ RENDER: med library chips ============ */
+function renderLib(){
+  const lib = document.getElementById('medLib');
+  const emptyMsg = document.getElementById('medLibEmpty');
+  const term = (document.getElementById('medSearch')?.value || '').trim().toLowerCase();
+  const filtered = term
+    ? MED_LIBRARY.filter(m => m.name.toLowerCase().includes(term))
+    : MED_LIBRARY;
+
+  lib.innerHTML = '';
+  filtered.forEach(m=>{
+    const chip = document.createElement('div');
+    chip.className = 'med-chip';
+    chip.textContent = '+ ' + m.name;
+    chip.onclick = ()=> addMed(m.name, m.dose, m.via, m.dil||'');
+    lib.appendChild(chip);
+  });
+  emptyMsg.style.display = filtered.length ? 'none' : 'block';
+}
+
+function addMed(name, dose='', via='EV', dil=''){
+  meds.push({id:'m'+(medSeq++), name, dose, via, dil, aprazo:'AGORA', obs:''});
+  renderMeds();
+}
+
+function addCustomMed(){
+  const input = document.getElementById('customMedName');
+  const val = input.value.trim();
+  if(!val) return;
+  addMed(val, '', 'EV', '');
+  input.value = '';
+}
+
+function removeMed(id){
+  meds = meds.filter(m=>m.id!==id);
+  renderMeds();
+}
+
+function updateMed(id, field, value){
+  const m = meds.find(x=>x.id===id);
+  if(m) m[field] = value;
+}
+
+function toggleObsTag(id, tag){
+  const m = meds.find(x=>x.id===id);
+  if(!m) return;
+  const parts = m.obs.split(',').map(s=>s.trim()).filter(Boolean);
+  const idx = parts.indexOf(tag);
+  if(idx>=0) parts.splice(idx,1); else parts.push(tag);
+  m.obs = parts.join(', ');
+  renderMeds();
+}
+
+function renderMeds(){
+  const list = document.getElementById('medList');
+  const empty = document.getElementById('medEmpty');
+  list.innerHTML = '';
+  empty.style.display = meds.length ? 'none' : 'block';
+
+  meds.forEach((m, idx)=>{
+    const row = document.createElement('div');
+    row.className = 'med-row';
+    row.innerHTML = `
+      <div class="med-row-head">
+        <div style="display:flex; align-items:center; flex:1;">
+          <span class="med-num">${idx+1}</span>
+          <input class="med-name-input" value="${escapeHtml(m.name)}" onchange="updateMed('${m.id}','name',this.value)">
+        </div>
+        <button class="btn btn-danger" onclick="removeMed('${m.id}')">remover</button>
+      </div>
+      <div class="med-grid">
+        <div class="mini-field">
+          <label>Dose</label>
+          <input value="${escapeHtml(m.dose)}" onchange="updateMed('${m.id}','dose',this.value)">
+        </div>
+        <div class="mini-field">
+          <label>Via</label>
+          <select onchange="updateMed('${m.id}','via',this.value)">
+            ${['EV','IM','SC','VO','Inalatória','Retal'].map(v=>`<option ${v===m.via?'selected':''}>${v}</option>`).join('')}
+          </select>
+        </div>
+        <div class="mini-field">
+          <label>Diluição</label>
+          <input value="${escapeHtml(m.dil)}" placeholder="ex: diluir em 100mL SF" onchange="updateMed('${m.id}','dil',this.value)">
+        </div>
+        <div class="mini-field">
+          <label>Aprazamento</label>
+          <select onchange="updateMed('${m.id}','aprazo',this.value)">
+            ${APRAZO_OPTS.map(o=>`<option ${o===m.aprazo?'selected':''}>${o}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="obs-row">
+        <input placeholder="Observação (ex: se dor, se náuseas...)" value="${escapeHtml(m.obs)}" onchange="updateMed('${m.id}','obs',this.value)">
+      </div>
+      <div class="obs-tags">
+        ${OBS_TAGS.map(t=>`<span class="obs-tag" onclick="toggleObsTag('${m.id}','${t}')">${t}</span>`).join('')}
+      </div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+/* ============ RENDER: checklists ============ */
+function renderChecklist(containerId, arr, addable){
+  const el = document.getElementById(containerId);
+  el.innerHTML = '';
+  arr.forEach(item=>{
+    const div = document.createElement('div');
+    div.className = 'check-item';
+    div.innerHTML = `
+      <input type="checkbox" id="${item.id}" ${item.checked?'checked':''} onchange="toggleCheck('${containerId}','${item.id}')">
+      <input type="text" value="${escapeHtml(item.text)}" onchange="editCheckText('${containerId}','${item.id}', this.value)">
+    `;
+    el.appendChild(div);
+  });
+}
+
+function getArrByContainer(containerId){
+  if(containerId==='vitalsGrid') return vitals;
+  if(containerId==='cuidadosGrid') return cuidados;
+  if(containerId==='examesGrid') return exames;
+}
+
+function toggleCheck(containerId, id){
+  const arr = getArrByContainer(containerId);
+  const item = arr.find(x=>x.id===id);
+  if(item) item.checked = !item.checked;
+}
+
+function editCheckText(containerId, id, value){
+  const arr = getArrByContainer(containerId);
+  const item = arr.find(x=>x.id===id);
+  if(item) item.text = value;
+}
+
+function addCustomExam(){
+  const input = document.getElementById('customExame');
+  const val = input.value.trim();
+  if(!val) return;
+  exames.push({id:'e'+(exames.length+100)+Date.now(), text:val, checked:true});
+  input.value='';
+  renderChecklist('examesGrid', exames);
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ============ PRINT GENERATION ============ */
+function gerarImpressao(){
+  document.getElementById('ps_name').textContent = document.getElementById('pName').value || '';
+  document.getElementById('ps_age').textContent = document.getElementById('pAge').value || '';
+  document.getElementById('ps_doc').textContent = document.getElementById('pDoc').value || '';
+  const dateVal = document.getElementById('pDate').value;
+  document.getElementById('ps_date').textContent = dateVal ? formatDate(dateVal) : '';
+
+  const tbody = document.getElementById('ps_rows');
+  tbody.innerHTML = '';
+  let n = 0;
+
+  function addSectionLabel(label){
+    tbody.innerHTML += `<tr class="ps-section-row"><td colspan="4">${escapeHtml(label)}</td></tr>`;
+  }
+
+  function addItemRow(texto, horario, obs){
+    n++;
+    tbody.innerHTML += `
+      <tr>
+        <td></td>
+        <td><span class="rownum">${n}.</span> ${escapeHtml(texto)}</td>
+        <td>${escapeHtml(horario||'')}</td>
+        <td>${escapeHtml(obs||'')}</td>
+      </tr>`;
+  }
+
+  // Medicações
+  if(meds.length){
+    meds.forEach(m=>{
+      const desc = [m.name, m.dose, m.via].filter(Boolean).join(' — ') + (m.dil ? ` (${m.dil})` : '');
+      addItemRow(desc, m.aprazo, m.obs);
+    });
+  }
+
+  // Sinais vitais
+  const vChecked = vitals.filter(v=>v.checked);
+  if(vChecked.length){
+    addSectionLabel('Sinais Vitais');
+    vChecked.forEach(v=> addItemRow(v.text, '', ''));
+  }
+
+  // Cuidados gerais
+  const cChecked = cuidados.filter(c=>c.checked);
+  if(cChecked.length){
+    addSectionLabel('Cuidados Gerais');
+    cChecked.forEach(c=> addItemRow(c.text, '', ''));
+  }
+
+  // Coleta de exames
+  const eChecked = exames.filter(e=>e.checked);
+  if(eChecked.length){
+    addSectionLabel('Coleta de Exames');
+    eChecked.forEach(e=> addItemRow('Coletar: ' + e.text, '', ''));
+  }
+
+  // Alta
+  const altaChecked = document.getElementById('altaCheck').checked;
+  const altaObs = document.getElementById('altaObs').value.trim();
+  if(altaChecked || altaObs){
+    addItemRow('ALTA APÓS' + (altaObs ? ' — ' + altaObs : ''), '', '');
+  }
+
+  // Preenche linhas em branco para completar a folha, igual ao modelo original
+  const totalRows = Math.max(26, n + 12);
+  for(let i = n; i < totalRows; i++){
+    tbody.innerHTML += `<tr><td></td><td></td><td></td><td></td></tr>`;
+  }
+
+  window.print();
+}
+
+function formatDate(iso){
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+/* ============ INIT ============ */
+renderLib();
+renderMeds();
+renderChecklist('vitalsGrid', vitals);
+renderChecklist('cuidadosGrid', cuidados);
+renderChecklist('examesGrid', exames);
+
+document.getElementById('pDate').valueAsDate = new Date();
+</script>
+</body>
+</html>
