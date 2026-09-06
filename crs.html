@@ -5,42 +5,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Prescrição · CRS Coophavila</title>
 <style>
-:root{--bg:#071719;--card:#0f2d31;--line:rgba(255,255,255,.12);--ink:#f3f8f7;--dim:#a7bcba;--teal:#35c7b8;--amber:#f2a93b;--danger:#e26161;--blue:#67a8ff}
-*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
-body{overflow:hidden}.bar{height:70px;display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0e2b2f,#091d20);position:relative;z-index:10}.brand{min-width:190px}.brand b{display:block;font-size:15px}.brand span{display:block;font-size:11px;color:var(--dim);margin-top:2px}.spacer{flex:1}.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.btn{border:1px solid var(--line);border-radius:9px;padding:10px 13px;background:#14393e;color:var(--ink);font-weight:700;cursor:pointer}.btn:hover{filter:brightness(1.08)}.btn-save{border-color:rgba(53,199,184,.5);color:#83eadf}.btn-review{border-color:rgba(242,169,59,.55);color:#ffd489}.btn-census{background:var(--teal);border-color:var(--teal);color:#032521}.btn-discharge{border-color:rgba(103,168,255,.55);color:#a9ccff}.frame{width:100%;height:calc(100% - 70px);border:0;background:white}.status{font-size:11px;color:var(--dim);white-space:nowrap}.modal{position:fixed;inset:0;background:rgba(1,10,12,.72);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}.modal.show{display:flex}.card{width:min(440px,100%);background:#102f34;border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.45)}.card h2{margin:0 0 8px;font-size:20px}.card p{margin:0 0 16px;color:var(--dim);font-size:13px;line-height:1.5}.card select{width:100%;padding:13px;border-radius:10px;border:1px solid var(--line);background:#0a2225;color:var(--ink);font-size:15px}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#123a3f;border:1px solid var(--line);padding:11px 14px;border-radius:10px;z-index:80;opacity:0;pointer-events:none;transition:.18s;color:var(--ink);font-size:13px}.toast.show{opacity:1}.toast.err{border-color:rgba(226,97,97,.55);color:#ffb4b4}
-@media(max-width:820px){.bar{height:auto;min-height:70px;align-items:flex-start;flex-wrap:wrap;padding:9px 10px}.brand{min-width:150px}.actions{width:100%;justify-content:stretch}.actions .btn{flex:1 1 45%;padding:9px 8px;font-size:12px}.frame{height:calc(100% - 126px)}.status{display:none}}
+:root{--bg:#11161c;--panel:#171e26;--line:#303944;--ink:#f5f7fa;--dim:#9da8b5;--red:#d93636;--red2:#a91f2a;--amber:#d99a2b;--blue:#3478c9;--green:#2f9a68}
+*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}body{overflow:hidden}.bar{height:58px;display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#191f27,#11171d);position:relative;z-index:10}.emblem{width:34px;height:34px;border-radius:8px;background:var(--red);display:grid;place-items:center;font-weight:900;color:#fff;box-shadow:0 0 0 3px rgba(217,54,54,.14)}.brand{min-width:190px}.brand b{display:block;font-size:14px;letter-spacing:.01em}.brand span{display:block;font-size:10px;color:var(--dim);margin-top:2px;text-transform:uppercase;letter-spacing:.08em}.spacer{flex:1}.status{font-size:11px;color:var(--dim);white-space:nowrap}.frame{width:100%;height:calc(100% - 58px);border:0;background:white}.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:#202833;border:1px solid var(--line);padding:11px 14px;border-radius:9px;z-index:80;opacity:0;pointer-events:none;transition:.18s;color:var(--ink);font-size:13px;box-shadow:0 12px 35px rgba(0,0,0,.35)}.toast.show{opacity:1}.toast.err{border-color:rgba(217,54,54,.6);color:#ffc2c2}@media(max-width:720px){.bar{height:54px;padding:7px 10px}.emblem{width:30px;height:30px}.brand{min-width:0}.brand b{font-size:13px}.brand span,.status{display:none}.frame{height:calc(100% - 54px)}}
 </style>
 </head>
 <body>
 <header class="bar">
-  <div class="brand"><b>Prescrição · CRS Coophavila</b><span id="patient-label">Atendimento em andamento</span></div>
-  <span class="status" id="status">Conectando à Central CRS…</span>
+  <div class="emblem">+</div>
+  <div class="brand"><b>CRS Coophavila · Prescrição</b><span id="patient-label">Urgência e Emergência</span></div>
   <div class="spacer"></div>
-  <div class="actions">
-    <button class="btn btn-save" id="save-only">Salvar</button>
-    <button class="btn btn-review" id="send-review">Reavaliação</button>
-    <button class="btn btn-census" id="send-census">Censo</button>
-    <button class="btn btn-discharge" id="send-discharge">Alta</button>
-  </div>
+  <span class="status" id="status">Conectando à Central CRS…</span>
 </header>
 <iframe id="presc" class="frame" src="./index.html?crs_embed=1" title="Prescrição"></iframe>
-
-<div class="modal" id="sector-modal" aria-hidden="true">
-  <div class="card">
-    <h2>Destino no Censo</h2>
-    <p>Selecione o setor físico onde o paciente ficará alocado.</p>
-    <select id="sector">
-      <option value="emergencia">Emergência</option>
-      <option value="infantil">Enfermaria Infantil</option>
-      <option value="feminina">Enfermaria Feminina</option>
-      <option value="masculina">Enfermaria Masculina</option>
-    </select>
-    <div class="modal-actions">
-      <button class="btn" id="cancel-sector">Cancelar</button>
-      <button class="btn btn-census" id="confirm-sector">Enviar ao Censo</button>
-    </div>
-  </div>
-</div>
 <div class="toast" id="toast"></div>
 <script>
 (function(){
@@ -54,170 +30,62 @@ body{overflow:hidden}.bar{height:70px;display:flex;align-items:center;gap:12px;p
   let context = null;
   let pendingSnapshot = null;
   let restoredOnce = false;
-  let baselineStorage = null;
+  let dirtyTimer = null;
+  let bypassButton = null;
+  const draftKey = 'crs-presc-draft:'+patientId;
 
-  function toast(msg, err){
-    const el=document.getElementById('toast'); el.textContent=msg; el.className='toast show'+(err?' err':'');
-    clearTimeout(toast._t); toast._t=setTimeout(()=>el.className='toast',2300);
-  }
-  function allowedMessage(e){
-    if(e.source !== window.opener) return false;
-    if(returnOrigin && e.origin !== returnOrigin) return false;
-    return true;
-  }
-  function post(msg){
-    if(!window.opener){ statusEl.textContent='Central CRS não está aberta'; return; }
-    try{ window.opener.postMessage(msg, returnOrigin || '*'); }catch(_){ window.opener.postMessage(msg,'*'); }
-  }
-  function currentDoc(){
-    try{return frame.contentDocument || frame.contentWindow.document;}catch(_){return null;}
-  }
+  function toast(msg, err){const el=document.getElementById('toast');el.textContent=msg;el.className='toast show'+(err?' err':'');clearTimeout(toast._t);toast._t=setTimeout(()=>el.className='toast',2300);}
+  function post(msg){if(!window.opener){statusEl.textContent='Central CRS não está aberta';return;}try{window.opener.postMessage(msg,returnOrigin||'*');}catch(_){window.opener.postMessage(msg,'*');}}
+  function currentDoc(){try{return frame.contentDocument||frame.contentWindow.document;}catch(_){return null;}}
   function textNorm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');}
-  function labelFor(el, doc){
-    let s='';
-    if(el.id){ const l=doc.querySelector('label[for="'+CSS.escape(el.id)+'"]'); if(l) s+=' '+l.textContent; }
-    if(el.closest('label')) s+=' '+el.closest('label').textContent;
-    s+=' '+(el.placeholder||'')+' '+(el.name||'')+' '+(el.id||'')+' '+(el.getAttribute('aria-label')||'');
-    return textNorm(s);
-  }
-  function findField(words){
-    const doc=currentDoc(); if(!doc) return null;
-    const els=[...doc.querySelectorAll('input,textarea,select')];
-    return els.find(el=>{ const t=labelFor(el,doc); return words.some(w=>t.includes(w)); }) || null;
-  }
-  function setField(el, value){
-    if(!el || value===undefined || value===null || value==='') return;
-    try{
-      if(el.tagName==='SELECT'){
-        const val=textNorm(value);
-        const opt=[...el.options].find(o=>textNorm(o.value)===val || textNorm(o.textContent).includes(val));
-        if(opt) el.value=opt.value; else el.value=value;
-      }else el.value=value;
-      el.dispatchEvent(new Event('input',{bubbles:true}));
-      el.dispatchEvent(new Event('change',{bubbles:true}));
-    }catch(_){}
-  }
-  function applyContext(){
-    if(!context) return;
-    const p=context.patient||{};
-    if(p.name) patientLabel.textContent=p.name+(p.age?' · '+p.age+' a':'');
-    setField(findField(['nome do paciente','nome paciente','paciente']),p.name);
-    setField(findField(['idade']),p.age);
-    if(p.sex) setField(findField(['sexo']),p.sex);
-  }
-  function storageDump(){
-    const out={};
-    try{
-      const ls=frame.contentWindow.localStorage;
-      for(let i=0;i<ls.length;i++){
-        const k=ls.key(i); if(!k) continue;
-        const nk=textNorm(k);
-        if(/presc|rascun|draft|pacient|receit|medic|item|form/.test(nk)) out[k]=ls.getItem(k);
-      }
-    }catch(_){}
-    return out;
-  }
-  function restoreStorage(obj){
-    if(!obj) return false;
-    let changed=false;
-    try{
-      const ls=frame.contentWindow.localStorage;
-      Object.keys(obj).forEach(k=>{ if(ls.getItem(k)!==obj[k]){ls.setItem(k,obj[k]); changed=true;} });
-    }catch(_){}
-    return changed;
-  }
-  function controlKey(el, idx){
-    if(el.id) return 'id:'+el.id;
-    if(el.name) return 'name:'+el.name+':'+idx;
-    return 'ord:'+idx+':'+el.tagName+':'+(el.type||'');
-  }
-  function serializeControls(){
-    const doc=currentDoc(); if(!doc) return [];
-    const els=[...doc.querySelectorAll('input,textarea,select')];
-    return els.map((el,i)=>({
-      key:controlKey(el,i),id:el.id||'',name:el.name||'',tag:el.tagName,type:el.type||'',
-      value:el.value,checked:!!el.checked,selected:[...((el.tagName==='SELECT')?el.options:[])].map((o,j)=>o.selected?j:null).filter(v=>v!==null)
-    }));
-  }
-  function restoreControls(controls){
-    const doc=currentDoc(); if(!doc || !Array.isArray(controls)) return;
-    const all=[...doc.querySelectorAll('input,textarea,select')];
-    controls.forEach((c,idx)=>{
-      let el=null;
-      if(c.id) el=doc.getElementById(c.id);
-      if(!el && c.name){ const same=[...doc.querySelectorAll('[name="'+CSS.escape(c.name)+'"]')]; el=same[idx]||same[0]; }
-      if(!el && c.key && c.key.startsWith('ord:')){ const n=parseInt(c.key.split(':')[1],10); el=all[n]; }
-      if(!el) return;
-      try{
-        if(el.type==='checkbox'||el.type==='radio') el.checked=!!c.checked;
-        else if(el.tagName==='SELECT' && Array.isArray(c.selected)) [...el.options].forEach((o,j)=>o.selected=c.selected.includes(j));
-        else el.value=c.value==null?'':c.value;
-        el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true}));
-      }catch(_){}
-    });
-  }
-  function bestPreviewText(){
-    const doc=currentDoc(); if(!doc) return '';
-    const sels=['#print-area','#printArea','.print-area','.prescricao-preview','.prescription-preview','.preview-prescricao','[data-print-area]','main'];
-    for(const s of sels){ const el=doc.querySelector(s); if(el && el.innerText && el.innerText.trim().length>80) return el.innerText.trim().slice(0,12000); }
-    return (doc.body?.innerText||'').trim().slice(0,12000);
-  }
-  function extractPatient(){
-    const nameEl=findField(['nome do paciente','nome paciente','paciente']);
-    const ageEl=findField(['idade']);
-    const sexEl=findField(['sexo']);
-    return {name:(nameEl?.value||context?.patient?.name||'').trim(),age:(ageEl?.value||context?.patient?.age||'').toString().trim(),sex:(sexEl?.value||context?.patient?.sex||'').toString().trim()};
-  }
-  function snapshot(){
-    return {version:1,savedAt:Date.now(),controls:serializeControls(),localStorage:storageDump(),previewText:bestPreviewText()};
-  }
-  function sendSaved(destination, sector){
-    const patient=extractPatient();
-    if(!patient.name){ toast('Informe o nome do paciente na prescrição antes de salvar.',true); return; }
-    const snap=snapshot();
-    post({type:'CRS_PRESCRIPTION_SAVED',patientId,patient,destination,sector:sector||'',snapshot:snap});
-    statusEl.textContent='Salvo na Central CRS'; toast('Prescrição salva na Central CRS.');
-  }
+  function labelFor(el,doc){let s='';if(el.id){const l=doc.querySelector('label[for="'+CSS.escape(el.id)+'"]');if(l)s+=' '+l.textContent;}if(el.closest('label'))s+=' '+el.closest('label').textContent;s+=' '+(el.placeholder||'')+' '+(el.name||'')+' '+(el.id||'')+' '+(el.getAttribute('aria-label')||'');return textNorm(s);}
+  function findField(words){const doc=currentDoc();if(!doc)return null;return [...doc.querySelectorAll('input,textarea,select')].find(el=>{const t=labelFor(el,doc);return words.some(w=>t.includes(w));})||null;}
+  function setField(el,value){if(!el||value===undefined||value===null||value==='')return;try{if(el.tagName==='SELECT'){const val=textNorm(value);const opt=[...el.options].find(o=>textNorm(o.value)===val||textNorm(o.textContent).includes(val));if(opt)el.value=opt.value;else el.value=value;}else el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}catch(_){}}
+  function applyContext(){if(!context)return;const p=context.patient||{};if(p.name)patientLabel.textContent=p.name+(p.age?' · '+p.age+' a':'');setField(findField(['nome do paciente','nome paciente','paciente']),p.name);setField(findField(['idade']),p.age);if(p.sex)setField(findField(['sexo']),p.sex);}
+  function storageDump(){const out={};try{const ls=frame.contentWindow.localStorage;for(let i=0;i<ls.length;i++){const k=ls.key(i);if(!k)continue;const nk=textNorm(k);if(/presc|rascun|draft|pacient|receit|medic|item|form/.test(nk))out[k]=ls.getItem(k);}}catch(_){}return out;}
+  function restoreStorage(obj){if(!obj)return false;let changed=false;try{const ls=frame.contentWindow.localStorage;Object.keys(obj).forEach(k=>{if(ls.getItem(k)!==obj[k]){ls.setItem(k,obj[k]);changed=true;}});}catch(_){}return changed;}
+  function controlKey(el,idx){if(el.id)return'id:'+el.id;if(el.name)return'name:'+el.name+':'+idx;return'ord:'+idx+':'+el.tagName+':'+(el.type||'');}
+  function serializeControls(){const doc=currentDoc();if(!doc)return[];const els=[...doc.querySelectorAll('input,textarea,select')].filter(el=>!el.closest('#crs-destination-panel'));return els.map((el,i)=>({key:controlKey(el,i),id:el.id||'',name:el.name||'',tag:el.tagName,type:el.type||'',value:el.value,checked:!!el.checked,selected:[...((el.tagName==='SELECT')?el.options:[])].map((o,j)=>o.selected?j:null).filter(v=>v!==null)}));}
+  function restoreControls(controls){const doc=currentDoc();if(!doc||!Array.isArray(controls))return;const all=[...doc.querySelectorAll('input,textarea,select')].filter(el=>!el.closest('#crs-destination-panel'));controls.forEach((c,idx)=>{let el=null;if(c.id)el=doc.getElementById(c.id);if(!el&&c.name){const same=[...doc.querySelectorAll('[name="'+CSS.escape(c.name)+'"]')];el=same[idx]||same[0];}if(!el&&c.key&&c.key.startsWith('ord:')){const n=parseInt(c.key.split(':')[1],10);el=all[n];}if(!el)return;try{if(el.type==='checkbox'||el.type==='radio')el.checked=!!c.checked;else if(el.tagName==='SELECT'&&Array.isArray(c.selected))[...el.options].forEach((o,j)=>o.selected=c.selected.includes(j));else el.value=c.value==null?'':c.value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}catch(_){}});}
+  function bestPreviewText(){const doc=currentDoc();if(!doc)return'';for(const s of ['#print-area','#printArea','.print-area','.prescricao-preview','.prescription-preview','.preview-prescricao','[data-print-area]','main']){const el=doc.querySelector(s);if(el&&el.innerText&&el.innerText.trim().length>80)return el.innerText.trim().slice(0,12000);}return(doc.body?.innerText||'').trim().slice(0,12000);}
+  function extractPatient(){const nameEl=findField(['nome do paciente','nome paciente','paciente']);const ageEl=findField(['idade']);const sexEl=findField(['sexo']);return{name:(nameEl?.value||context?.patient?.name||'').trim(),age:(ageEl?.value||context?.patient?.age||'').toString().trim(),sex:(sexEl?.value||context?.patient?.sex||'').toString().trim()};}
+  function snapshot(){return{version:2,savedAt:Date.now(),controls:serializeControls(),localStorage:storageDump(),previewText:bestPreviewText()};}
+  function getDestination(){const doc=currentDoc();const checked=doc?.querySelector('#crs-destination-panel input[name="crs-dest"]:checked');return checked?.value||'';}
+  function getSector(){return currentDoc()?.querySelector('#crs-sector')?.value||'';}
+  function saveLocalDraft(show=false){try{localStorage.setItem(draftKey,JSON.stringify(snapshot()));statusEl.textContent='Prévia salva neste dispositivo';if(show)toast('Prévia salva.');}catch(_){if(show)toast('Não foi possível salvar a prévia.',true);}}
+  function loadLocalDraft(){try{return JSON.parse(localStorage.getItem(draftKey)||'null');}catch(_){return null;}}
+  function sendSaved(destination,sector,show=true){const patient=extractPatient();if(!patient.name){toast('Informe o nome do paciente antes de salvar.',true);return false;}const snap=snapshot();post({type:'CRS_PRESCRIPTION_SAVED',patientId,patient,destination:destination||'salvar',sector:sector||'',snapshot:snap});try{localStorage.setItem(draftKey,JSON.stringify(snap));}catch(_){}statusEl.textContent=destination&&destination!=='salvar'?'Versão enviada à Central CRS':'Prévia enviada à Central CRS';if(show)toast(destination&&destination!=='salvar'?'Prescrição salva e destino aplicado.':'Prévia salva na Central CRS.');return true;}
 
-  frame.addEventListener('load',()=>{
-    setTimeout(()=>{
-      if(baselineStorage===null) baselineStorage=storageDump();
-      if(pendingSnapshot && !restoredOnce){
-        restoredOnce=true;
-        const changed=restoreStorage(pendingSnapshot.localStorage||{});
-        if(changed){
-          frame.addEventListener('load',()=>setTimeout(()=>{restoreControls(pendingSnapshot.controls||[]);applyContext();},350),{once:true});
-          frame.contentWindow.location.reload();
-          return;
-        }
-        restoreControls(pendingSnapshot.controls||[]);
-      }
-      applyContext();
-    },350);
-  });
-
-  window.addEventListener('message',e=>{
-    if(!allowedMessage(e) || !e.data) return;
-    if(e.data.type==='CRS_PRESCRIPTION_CONTEXT'){
-      context=e.data.context||null;
-      pendingSnapshot=e.data.snapshot||null;
-      statusEl.textContent='Conectado à Central CRS';
-      if(frame.contentDocument?.readyState==='complete') setTimeout(()=>{ if(pendingSnapshot&&!restoredOnce){restoredOnce=true;restoreControls(pendingSnapshot.controls||[]);} applyContext();},200);
+  function injectStyles(doc){if(doc.getElementById('crs-flow-style'))return;const st=doc.createElement('style');st.id='crs-flow-style';st.textContent=`
+#crs-destination-panel{margin:18px 0 8px;border:1px solid #c6cdd4;border-left:5px solid #c92c34;background:#fff;border-radius:7px;padding:15px 16px;box-shadow:0 3px 12px rgba(32,43,54,.06)}
+#crs-destination-panel .crs-title{font-family:'Barlow Semi Condensed',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.055em;color:#8f1e28;font-size:14px;margin-bottom:4px}
+#crs-destination-panel .crs-help{font-size:11.5px;color:#67727c;margin-bottom:12px}.crs-dest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.crs-choice{border:1px solid #c7cfd6;border-radius:6px;padding:10px 11px;display:flex;gap:8px;align-items:center;background:#f8fafb;cursor:pointer;font-size:12.5px;font-weight:600}.crs-choice:has(input:checked){border-color:#b92832;background:#fff0f1;color:#8d1d26}.crs-choice input{accent-color:#b92832}.crs-sector-wrap{display:none;margin-top:10px}.crs-sector-wrap.show{display:block}.crs-sector-wrap label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#68737d;font-weight:700;margin-bottom:4px}.crs-sector-wrap select{width:100%;padding:9px;border:1px solid #c7cfd6;border-radius:5px;background:#fff}.crs-save-row{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:12px;flex-wrap:wrap}.crs-save-status{margin-right:auto;font-size:11px;color:#75818c}.crs-save-btn{font-family:'Barlow Semi Condensed',sans-serif;border-radius:4px;border:1px solid #687581;background:#fff;color:#32414d;font-weight:700;text-transform:uppercase;letter-spacing:.03em;font-size:11.5px;padding:8px 12px;cursor:pointer}.crs-save-btn.final{background:#202b35;color:#fff;border-color:#202b35}
+@media(max-width:700px){.crs-dest-grid{grid-template-columns:1fr}.crs-save-row{justify-content:stretch}.crs-save-btn{flex:1}.crs-save-status{width:100%}}
+`;doc.head.appendChild(st);}
+  function findActionButton(doc,words){const candidates=[...doc.querySelectorAll('button,.btn,input[type="button"],input[type="submit"]')];return candidates.find(el=>{const t=textNorm(el.textContent||el.value||el.getAttribute('aria-label')||'');return words.some(w=>t.includes(w));})||null;}
+  function injectFlow(){const doc=currentDoc();if(!doc)return;injectStyles(doc);let panel=doc.getElementById('crs-destination-panel');if(!panel){panel=doc.createElement('section');panel.id='crs-destination-panel';panel.innerHTML=`<div class="crs-title">Destino após a prescrição</div><div class="crs-help">Selecione para onde o paciente irá quando esta versão for finalizada.</div><div class="crs-dest-grid"><label class="crs-choice"><input type="radio" name="crs-dest" value="alta"> Alta</label><label class="crs-choice"><input type="radio" name="crs-dest" value="reavaliacao"> Reavaliação</label><label class="crs-choice"><input type="radio" name="crs-dest" value="censo"> Censo</label></div><div class="crs-sector-wrap" id="crs-sector-wrap"><label>Setor no Censo</label><select id="crs-sector"><option value="emergencia">Emergência</option><option value="infantil">Enfermaria Infantil</option><option value="feminina">Enfermaria Feminina</option><option value="masculina">Enfermaria Masculina</option></select></div><div class="crs-save-row"><span class="crs-save-status" id="crs-save-status">Alterações são preservadas como prévia.</span><button type="button" class="crs-save-btn" id="crs-save-preview">Salvar prévia</button><button type="button" class="crs-save-btn final" id="crs-save-final">Salvar sem imprimir</button></div>`;
+      const footer=doc.querySelector('.footer-actions')||findActionButton(doc,['imprimir pdf','imprimir'])?.parentElement||doc.querySelector('main')||doc.body;
+      if(footer&&footer!==doc.body)footer.parentNode.insertBefore(panel,footer);else doc.body.appendChild(panel);
     }
-  });
+    const wrap=doc.getElementById('crs-sector-wrap');const syncSector=()=>{wrap?.classList.toggle('show',getDestination()==='censo');};doc.querySelectorAll('#crs-destination-panel input[name="crs-dest"]').forEach(r=>{r.onchange=syncSector;});syncSector();
+    const prev=doc.getElementById('crs-save-preview');if(prev)prev.onclick=()=>{saveLocalDraft();sendSaved('salvar','',true);const st=doc.getElementById('crs-save-status');if(st)st.textContent='Prévia salva agora.';};
+    const fin=doc.getElementById('crs-save-final');if(fin)fin.onclick=()=>{const d=getDestination();if(!d)return toast('Selecione Alta, Reavaliação ou Censo.',true);if(sendSaved(d,d==='censo'?getSector():'',true)){const st=doc.getElementById('crs-save-status');if(st)st.textContent='Versão final salva.';}};
+    hookActionButtons(doc);
+    if(!doc.body.dataset.crsDraftHook){doc.body.dataset.crsDraftHook='1';doc.addEventListener('input',e=>{if(e.target?.closest?.('#crs-destination-panel'))return;clearTimeout(dirtyTimer);dirtyTimer=setTimeout(()=>{saveLocalDraft(false);const st=doc.getElementById('crs-save-status');if(st)st.textContent='Prévia salva automaticamente.';},1800);},true);doc.addEventListener('change',e=>{if(e.target?.closest?.('#crs-destination-panel'))return;clearTimeout(dirtyTimer);dirtyTimer=setTimeout(()=>saveLocalDraft(false),900);},true);}
+  }
+  function hookActionButtons(doc){
+    const review=findActionButton(doc,['revisar']);
+    const print=findActionButton(doc,['imprimir pdf','imprimir']);
+    if(review&&!review.dataset.crsHook){review.dataset.crsHook='1';review.addEventListener('click',ev=>{if(bypassButton===review){bypassButton=null;return;}ev.preventDefault();ev.stopImmediatePropagation();sendSaved('salvar','',false);bypassButton=review;setTimeout(()=>review.click(),120);},true);}
+    if(print&&!print.dataset.crsHook){print.dataset.crsHook='1';print.addEventListener('click',ev=>{if(bypassButton===print){bypassButton=null;return;}const d=getDestination();if(!d){ev.preventDefault();ev.stopImmediatePropagation();toast('Selecione o destino do paciente antes de imprimir.',true);doc.getElementById('crs-destination-panel')?.scrollIntoView({behavior:'smooth',block:'center'});return;}ev.preventDefault();ev.stopImmediatePropagation();if(!sendSaved(d,d==='censo'?getSector():'',false))return;bypassButton=print;setTimeout(()=>print.click(),180);},true);}
+  }
 
-  document.getElementById('save-only').onclick=()=>sendSaved('salvar','');
-  document.getElementById('send-review').onclick=()=>sendSaved('reavaliacao','');
-  document.getElementById('send-discharge').onclick=()=>sendSaved('alta','');
-  document.getElementById('send-census').onclick=()=>document.getElementById('sector-modal').classList.add('show');
-  document.getElementById('cancel-sector').onclick=()=>document.getElementById('sector-modal').classList.remove('show');
-  document.getElementById('confirm-sector').onclick=()=>{
-    document.getElementById('sector-modal').classList.remove('show');
-    sendSaved('censo',document.getElementById('sector').value);
-  };
+  frame.addEventListener('load',()=>{setTimeout(()=>{let snap=pendingSnapshot||loadLocalDraft();if(snap&&!restoredOnce){restoredOnce=true;const changed=restoreStorage(snap.localStorage||{});if(changed){frame.addEventListener('load',()=>setTimeout(()=>{restoreControls(snap.controls||[]);applyContext();injectFlow();},320),{once:true});frame.contentWindow.location.reload();return;}restoreControls(snap.controls||[]);}applyContext();injectFlow();},320);});
+
+  window.addEventListener('message',e=>{if(e.source!==window.opener||!e.data)return;if(returnOrigin&&e.origin!==returnOrigin)return;if(e.data.type==='CRS_PRESCRIPTION_CONTEXT'){context=e.data.context||null;pendingSnapshot=e.data.snapshot||null;statusEl.textContent='Conectado à Central CRS';if(frame.contentDocument?.readyState==='complete')setTimeout(()=>{if(pendingSnapshot&&!restoredOnce){restoredOnce=true;restoreControls(pendingSnapshot.controls||[]);}applyContext();injectFlow();},180);}});
 
   post({type:'CRS_PRESCRIPTION_READY',patientId});
-  setTimeout(()=>{ if(statusEl.textContent.includes('Conectando')) statusEl.textContent='Prescrição aberta'; },1600);
+  setTimeout(()=>{if(statusEl.textContent.includes('Conectando'))statusEl.textContent='Prescrição aberta';},1500);
 })();
 </script>
 </body>
