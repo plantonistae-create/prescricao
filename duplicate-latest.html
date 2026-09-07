@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Duplicando última prescrição…</title></head>
+<body>
+<script>
+(()=>{
+  'use strict';
+  const qs=new URLSearchParams(location.search);
+  const patientId=String(qs.get('patientId')||'').trim();
+  const returnOrigin=String(qs.get('returnOrigin')||'').trim();
+  if(!patientId){document.body.textContent='Paciente não identificado.';return;}
+  try{localStorage.removeItem('crs-temp:'+patientId)}catch{}
+  try{localStorage.removeItem('crs-presc-draft:'+patientId)}catch{}
+  try{sessionStorage.removeItem('crs-temp:'+patientId);sessionStorage.removeItem('crs-presc-draft:'+patientId)}catch{}
+  const u=new URL('./crs-v4.html',location.href);
+  u.searchParams.set('patientId',patientId);
+  if(returnOrigin)u.searchParams.set('returnOrigin',returnOrigin);
+  u.searchParams.set('duplicateSource','latest');
+  u.searchParams.set('v',Date.now().toString());
+  location.replace(u.toString());
+})();
+</script>
+</body>
+</html>
