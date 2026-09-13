@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Abrindo prescrição salva · CRS Coophavila</title>
+<style>
+*{box-sizing:border-box}html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#eef4f9;color:#183047}body{display:grid;place-items:center;padding:24px}.card{width:min(520px,100%);background:#fff;border:1px solid #d7e2ec;border-radius:14px;padding:20px;text-align:center;box-shadow:0 12px 34px rgba(32,66,96,.09)}.mark{width:38px;height:38px;border-radius:10px;background:#1578d4;color:#fff;display:grid;place-items:center;font-weight:900;margin:0 auto 12px}h1{font-size:17px;margin:0 0 8px}p{font-size:12px;line-height:1.5;color:#6b7c8a;margin:0}.err{color:#b7252f}
+</style>
+</head>
+<body>
+<div class="card"><div class="mark">+</div><h1 id="title">Abrindo versão salva…</h1><p id="status">Buscando a cópia exata no histórico da Central CRS.</p></div>
+<script>
+(()=>{
+  'use strict';
+  const qs=new URLSearchParams(location.search);
+  const patientId=String(qs.get('patientId')||'').trim();
+  const prescriptionId=String(qs.get('prescriptionId')||'').trim();
+  const returnOrigin=String(qs.get('returnOrigin')||'').trim();
+  const status=document.getElementById('status');
+  const title=document.getElementById('title');
+  const target=()=>window.opener||((window.parent&&window.parent!==window)?window.parent:null);
+
+  function fail(message){
+    title.textContent='Não foi possível abrir esta versão';
+    status.textContent=message||'Tente novamente pela Central CRS.';
+    status.className='err';
+  }
+  function post(message){
+    const w=target();
+    if(!w) throw new Error('Abra esta versão pela Central CRS.');
+    w.postMessage(message,returnOrigin||'*');
+  }
+  function saveEditableCopy(snapshot){
+    if(!snapshot||typeof snapshot!=='object') throw new Error('Esta versão não possui dados editáveis completos.');
+    const draftKey='crs-temp:'+patientId;
+    try{
+      const existing=localStorage.getItem(draftKey);
+      if(existing) sessionStorage.setItem('crs-history-backup:'+patientId+':'+Date.now(),existing);
+    }catch{}
+    const copy={...snapshot,savedAt:Date.now()+1000,restoredFromPrescriptionId:prescriptionId,restoredAsCopy:true};
+    localStorage.setItem(draftKey,JSON.stringify(copy));
+    try{localStorage.removeItem('crs-presc-draft:'+patientId)}catch{}
+  }
+  function openEditor(){
+    const u=new URL('./crs-v4.html',location.href);
+    u.searchParams.set('patientId',patientId);
+    if(returnOrigin) u.searchParams.set('returnOrigin',returnOrigin);
+    u.searchParams.set('historyCopy',prescriptionId);
+    u.searchParams.set('v',Date.now().toString());
+    location.replace(u.toString());
+  }
+
+  window.addEventListener('message',event=>{
+    if(!event.data||typeof event.data!=='object') return;
+    if(returnOrigin&&event.origin!==returnOrigin) return;
+    if(target()&&event.source!==target()) return;
+    if(event.data.type!=='CRS_PRESCRIPTION_HISTORY_CONTEXT') return;
+    if(event.data.patientId!==patientId||event.data.prescriptionId!==prescriptionId) return;
+    if(event.data.error) return fail(event.data.error);
+    try{
+      saveEditableCopy(event.data.snapshot);
+      status.textContent='Versão restaurada. Abrindo uma cópia editável…';
+      openEditor();
+    }catch(error){fail(error?.message||'Falha ao restaurar a versão salva.');}
+  });
+
+  try{
+    if(!patientId||!prescriptionId) throw new Error('Prescrição histórica não identificada.');
+    post({type:'CRS_PRESCRIPTION_HISTORY_READY',patientId,prescriptionId});
+  }catch(error){fail(error?.message);}
+})();
+</script>
+</body>
+</html>
