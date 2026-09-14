@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Prescrição · CRS Coophavila</title><style>*{box-sizing:border-box}html,body,#host{width:100%;height:100%;margin:0}body{overflow:hidden;background:#eef4f9;font-family:Inter,system-ui,sans-serif}#host{border:0;display:block}.loading{position:fixed;inset:0;display:grid;place-items:center;background:#eef4f9;color:#526b80;font-size:13px}.hidden{display:none}</style></head>
+<body><div id="loading" class="loading">Carregando prescrição completa…</div><iframe id="host" class="hidden" title="Prescrição CRS"></iframe>
+<script>
+(()=>{
+'use strict';
+const qs=new URLSearchParams(location.search);
+const patientId=String(qs.get('patientId')||'').trim();
+const returnOrigin=String(qs.get('returnOrigin')||'').trim();
+const host=document.getElementById('host'),loading=document.getElementById('loading');
+const APP_DRAFT_KEY='prescricao_draft_session_v2';
+let cachedContext=null,innerReady=false,loaded=false;
+function outer(){return window.parent&&window.parent!==window?window.parent:window.opener}
+function postOuter(message){const target=outer();if(!target)throw new Error('Abra a prescrição pela Central CRS.');target.postMessage(message,returnOrigin||'*')}
+function safeSessionSnapshot(){const out={};try{const raw=sessionStorage.getItem(APP_DRAFT_KEY);if(raw)out[APP_DRAFT_KEY]=raw}catch{}return out}
+function clearAppDraft(){try{sessionStorage.removeItem(APP_DRAFT_KEY)}catch{}}
+function restoreAppDraft(snapshot){clearAppDraft();const store=snapshot?.sessionStorage;if(!store||typeof store!=='object')return false;const raw=store[APP_DRAFT_KEY];if(typeof raw!=='string'||!raw)return false;try{const parsed=JSON.parse(raw);if(!parsed||parsed.version!==2)return false;sessionStorage.setItem(APP_DRAFT_KEY,raw);return true}catch{return false}}
+function loadEditor(){if(loaded)return;loaded=true;const u=new URL('./crs-v4.html',location.href);for(const [k,v] of qs.entries())if(k!=='v')u.searchParams.set(k,v);u.searchParams.set('v','5-'+Date.now());host.src=u.toString();host.classList.remove('hidden');loading.classList.add('hidden')}
+function sendContextToInner(){if(!innerReady||!cachedContext)return;try{host.contentWindow.postMessage(cachedContext,location.origin)}catch{}}
+window.addEventListener('message',event=>{
+ const data=event.data;if(!data||typeof data!=='object')return;
+ if(event.source===host.contentWindow){
+   if(data.type==='CRS_PRESCRIPTION_READY_V2'){
+     innerReady=true;sendContextToInner();return;
+   }
+   if(data.type==='CRS_PRESCRIPTION_SAVE_V2'){
+     const next={...data,snapshot:{...(data.snapshot||{}),sessionStorage:safeSessionSnapshot(),stateCaptureVersion:1}};
+     try{postOuter(next)}catch{}
+     return;
+   }
+   if(data.type==='CRS_PRESCRIPTION_HISTORY_READY'){try{postOuter(data)}catch{};return}
+   return;
+ }
+ if(returnOrigin&&event.origin!==returnOrigin)return;
+ if(outer()&&event.source!==outer())return;
+ if(data.type==='CRS_PRESCRIPTION_CONTEXT_V2'&&data.patientId===patientId){
+   cachedContext=data;
+   restoreAppDraft(data.snapshot);
+   loadEditor();sendContextToInner();return;
+ }
+ if(data.type==='CRS_PRESCRIPTION_SAVE_RESULT'){
+   try{host.contentWindow.postMessage(data,location.origin)}catch{};return;
+ }
+});
+try{
+ if(!patientId)throw new Error('Paciente não identificado.');
+ postOuter({type:'CRS_PRESCRIPTION_READY_V2',patientId});
+ setTimeout(()=>{if(!loaded){clearAppDraft();loadEditor()}},2500);
+}catch(error){loading.textContent=error?.message||'Não foi possível abrir a prescrição.'}
+})();
+</script></body></html>
