@@ -580,6 +580,8 @@
     text-transform:uppercase; letter-spacing:.03em;
   }
   .topbar .desk-top-btn:hover{background:rgba(255,255,255,.16);}
+  .topbar .desk-top-btn.danger{background:#c9343d;border-color:#c9343d;color:#fff;}
+  .topbar .desk-top-btn.danger:hover{background:#aa242d;border-color:#aa242d;}
   .topbar .desk-top-btn.primary{background:var(--amber);border-color:var(--amber);color:#fff;}
 
   #patientRibbon{
@@ -2892,6 +2894,7 @@ window.addEventListener('beforeprint', function(){
   'use strict';
 
   const DRAFT_KEY = 'prescricao_draft_session_v2';
+  const RESET_TOP_KEY = 'prescricao_reset_to_top_v1';
   const DARK_KEY = 'prescricao_dark_mode_v2';
   let draftDirty = false;
   let saveTimer = null;
@@ -2956,6 +2959,7 @@ window.addEventListener('beforeprint', function(){
       <button class="desk-top-btn" type="button" onclick="abrirBuscaUniversal()">⌕ Buscar <span class="kbd">Ctrl K</span></button>
       <button class="desk-top-btn" type="button" onclick="toggleDarkMode()">◐ Tema</button>
       <button class="desk-top-btn" type="button" onclick="novaPrescricao()">Nova prescrição</button>
+      <button class="desk-top-btn danger" type="button" onclick="limparTudo()">🗑 Limpar tudo</button>
       <button class="desk-top-btn primary" type="button" onclick="abrirRevisaoImpressao()">Revisar / imprimir</button>`;
     top.appendChild(box);
   }
@@ -3585,13 +3589,47 @@ window.addEventListener('beforeprint', function(){
     applyDarkMode(!document.documentElement.classList.contains('dark-mode'));
   };
 
+  function scrollPrescriptionTop(){
+    try{ if('scrollRestoration' in history) history.scrollRestoration='manual'; }catch(e){}
+    const apply=()=>{
+      try{ window.scrollTo(0,0); }catch(e){}
+      try{
+        if(document.documentElement) document.documentElement.scrollTop=0;
+        if(document.body) document.body.scrollTop=0;
+        if(document.scrollingElement) document.scrollingElement.scrollTop=0;
+      }catch(e){}
+    };
+    apply();
+    try{ requestAnimationFrame(apply); }catch(e){}
+    setTimeout(apply,120);
+  }
+
   function resetPrescriptionAndReload(){
     isResettingPrescription = true;
     draftDirty = false;
     clearTimeout(saveTimer);
     clearTimeout(previewTimer);
-    try{ sessionStorage.removeItem(DRAFT_KEY); }catch(e){}
+    try{
+      sessionStorage.removeItem(DRAFT_KEY);
+      sessionStorage.setItem(RESET_TOP_KEY,'1');
+    }catch(e){}
+    try{ if('scrollRestoration' in history) history.scrollRestoration='manual'; }catch(e){}
     location.reload();
+  }
+
+  function consumePrescriptionReset(){
+    let reset=false;
+    try{
+      reset=sessionStorage.getItem(RESET_TOP_KEY)==='1';
+      if(reset){
+        sessionStorage.removeItem(RESET_TOP_KEY);
+        // Defesa dupla: mesmo que algum evento tardio tenha tentado recriar o draft,
+        // uma limpeza confirmada sempre vence na próxima carga.
+        sessionStorage.removeItem(DRAFT_KEY);
+      }
+    }catch(e){}
+    if(reset) scrollPrescriptionTop();
+    return reset;
   }
 
   window.novaPrescricao=function(){
@@ -3709,11 +3747,16 @@ window.addEventListener('beforeprint', function(){
 
     try{ applyDarkMode(localStorage.getItem(DARK_KEY)==='1'); }catch(e){}
 
-    const restored=restoreDraft();
+    const resetAfterClear=consumePrescriptionReset();
+    const restored=resetAfterClear ? false : restoreDraft();
     if(!restored){
       updatePatientRibbon();
       updateSectionCounts();
       schedulePreview();
+    }
+    if(resetAfterClear){
+      scrollPrescriptionTop();
+      setTimeout(scrollPrescriptionTop,180);
     }
   }
 
