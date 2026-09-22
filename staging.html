@@ -750,12 +750,27 @@
   .desk-toast.error{background:#8f3131;}
   @keyframes deskToastIn{to{opacity:1;transform:none;}}
 
-  #universalSearchOverlay, #reviewOverlay{
+  #universalSearchOverlay, #reviewOverlay, #quickModelOverlay{
     position:fixed; inset:0; z-index:250; display:none;
     background:rgba(9,28,30,.54); backdrop-filter:blur(2px);
-    align-items:flex-start; justify-content:center; padding-top:10vh;
+    justify-content:center;
   }
-  #universalSearchOverlay.open, #reviewOverlay.open{display:flex;}
+  #universalSearchOverlay, #reviewOverlay{
+    align-items:flex-start; padding-top:10vh;
+  }
+  #quickModelOverlay{
+    align-items:center; padding:20px;
+  }
+  #universalSearchOverlay.open, #reviewOverlay.open, #quickModelOverlay.open{display:flex;}
+  #quickModelOverlay .desk-modal{
+    width:min(620px,92vw);
+    max-height:min(78vh,720px);
+    display:flex;
+    flex-direction:column;
+  }
+  #quickModelOverlay .review-body{
+    max-height:54vh;
+  }
   .desk-modal{
     width:min(720px,92vw); background:#fff; border-radius:8px;
     box-shadow:0 25px 80px rgba(0,0,0,.3); overflow:hidden;
@@ -850,7 +865,7 @@
     #patientRibbon{top:52px;overflow:auto;white-space:nowrap;}
   }
   @media print{
-    #patientRibbon,#universalSearchOverlay,#reviewOverlay,.desk-toast-host{display:none !important;}
+    #patientRibbon,#universalSearchOverlay,#reviewOverlay,#quickModelOverlay,.desk-toast-host{display:none !important;}
   }
 </style>
 
