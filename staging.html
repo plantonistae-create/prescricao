@@ -629,6 +629,31 @@
     font-size:10.5px;
     line-height:1.35;
   }
+  #quickModelsCard{padding:12px 14px;margin-bottom:12px;}
+  #quickModelsCard[hidden]{display:none !important;}
+  #quickModelsCard .quick-models-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  #quickModelsCard .quick-models-title{
+    font:700 13px 'Barlow Semi Condensed',sans-serif;
+    text-transform:uppercase;letter-spacing:.04em;color:var(--teal-dark);
+  }
+  #quickModelsCard .quick-models-meta{margin-left:auto;font:500 9.5px 'IBM Plex Mono',monospace;color:var(--slate);}
+  #quickModelsList{display:flex;flex-wrap:wrap;gap:7px;}
+  .quick-model-btn{
+    border:1px solid var(--teal);background:#fff;color:var(--teal-dark);
+    border-radius:4px;padding:7px 10px;cursor:pointer;
+    font:600 11px 'Barlow Semi Condensed',sans-serif;
+  }
+  .quick-model-btn:hover,.quick-model-btn:focus{background:var(--teal-tint);outline:none;box-shadow:var(--desk-focus);}
+  .quick-model-btn small{display:block;font:500 9px 'IBM Plex Mono',monospace;color:var(--slate);margin-top:2px;}
+  .quick-model-preview{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+  .quick-model-preview .item{
+    border:1px solid var(--line);border-radius:4px;padding:7px 9px;
+    font-size:11.5px;background:var(--desk-panel);
+  }
+  .quick-model-note{
+    padding:9px 10px;border:1px solid #d8c59f;background:#fff9ec;
+    border-radius:4px;font-size:11px;line-height:1.45;color:var(--ink);
+  }
 
   #patientRibbon{
     position:sticky; top:54px; z-index:80;
@@ -799,7 +824,8 @@
   .dark-mode .med-row,.dark-mode .sol-meds,.dark-mode .sol-head select,
   .dark-mode .med-grid input,.dark-mode .med-grid select,.dark-mode .wait-item input,
   .dark-mode .add-custom input,.dark-mode .quick-presets button,
-  .dark-mode #universalSearchLauncher .universal-launcher-btn{
+  .dark-mode #universalSearchLauncher .universal-launcher-btn,
+  .dark-mode .quick-model-btn{
     background:#162122;color:var(--ink);
   }
   .dark-mode .ps-main,.dark-mode .ps-patient{background:#fff;color:#000;}
@@ -2955,6 +2981,10 @@ window.addEventListener('beforeprint', function(){
   const DRAFT_KEY = 'prescricao_draft_session_v2';
   const RESET_TOP_KEY = 'prescricao_reset_to_top_v1';
   const DARK_KEY = 'prescricao_dark_mode_v2';
+  const QUICK_MODELS_CACHE_KEY = 'prescricao_quick_models_cache_v1';
+  const QUICK_MODELS_URL = './modelos-prescricao.json';
+  let quickModelsCatalog = {schema_version:1,updated_at:'',models:[]};
+  let quickModelsSource = 'none';
   let draftDirty = false;
   let lastDraftSavedAt = 0;
   let saveTimer = null;
@@ -3038,6 +3068,303 @@ window.addEventListener('beforeprint', function(){
       </button>
       <div class="universal-launcher-hint">Use esta busca para adicionar rapidamente qualquer item. As seções abaixo continuam disponíveis para preenchimento detalhado.</div>`;
     main.insertAdjacentElement('afterbegin',launcher);
+  }
+
+  function buildQuickModelsCard(){
+    const main=document.querySelector('.wrap > div:nth-child(2)');
+    if(!main || q('quickModelsCard')) return;
+    const search=q('universalSearchLauncher');
+    const card=document.createElement('div');
+    card.id='quickModelsCard';
+    card.className='card no-print';
+    card.hidden=true;
+    card.innerHTML=`
+      <div class="quick-models-head">
+        <div class="quick-models-title">Modelos rápidos</div>
+        <div class="quick-models-meta" id="quickModelsMeta"></div>
+      </div>
+      <div id="quickModelsList"></div>`;
+    if(search) search.insertAdjacentElement('afterend',card);
+    else main.insertAdjacentElement('afterbegin',card);
+  }
+
+  function normalizeQuickModelsCatalog(data){
+    if(!data || typeof data!=='object') throw new Error('Catálogo ausente.');
+    if(Number(data.schema_version)!==1) throw new Error('Versão de catálogo não suportada.');
+    if(!Array.isArray(data.models)) throw new Error('Lista de modelos inválida.');
+    const models=data.models.filter(m=>m && typeof m==='object' && m.id && m.nome && m.habilitado!==false);
+    return {
+      schema_version:1,
+      updated_at:text(data.updated_at||''),
+      models:models.map(m=>({
+        id:text(m.id),
+        nome:text(m.nome),
+        categoria:text(m.categoria||''),
+        versao:text(m.versao||''),
+        descricao:text(m.descricao||''),
+        aviso:text(m.aviso||''),
+        medicamentos:Array.isArray(m.medicamentos)?m.medicamentos:[],
+        solucoes:Array.isArray(m.solucoes)?m.solucoes:[],
+        dietas:Array.isArray(m.dietas)?m.dietas:[],
+        medidas:Array.isArray(m.medidas)?m.medidas:[],
+        exames:Array.isArray(m.exames)?m.exames:[],
+        ecg:!!m.ecg,
+        radiografia:m.radiografia||null,
+        observacao_geral:text(m.observacao_geral||'')
+      }))
+    };
+  }
+
+  function quickModelsUpdatedLabel(value){
+    if(!value) return '';
+    const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    return m ? `Atualizados: ${m[3]}/${m[2]}/${m[1]}` : 'Atualizados: '+value;
+  }
+
+  async function loadQuickModels(){
+    let catalog=null;
+    let source='none';
+    try{
+      const sep=QUICK_MODELS_URL.includes('?')?'&':'?';
+      const res=await fetch(QUICK_MODELS_URL+sep+'v='+Date.now(),{cache:'no-store'});
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      catalog=normalizeQuickModelsCatalog(await res.json());
+      source='remote';
+      try{localStorage.setItem(QUICK_MODELS_CACHE_KEY,JSON.stringify(catalog));}catch(e){}
+    }catch(e){
+      try{
+        const cached=localStorage.getItem(QUICK_MODELS_CACHE_KEY);
+        if(cached){
+          catalog=normalizeQuickModelsCatalog(JSON.parse(cached));
+          source='cache';
+        }
+      }catch(cacheError){}
+      if(!catalog) console.warn('Modelos rápidos indisponíveis:',e);
+    }
+    quickModelsCatalog=catalog||{schema_version:1,updated_at:'',models:[]};
+    quickModelsSource=source;
+    renderQuickModels();
+  }
+
+  function renderQuickModels(){
+    const card=q('quickModelsCard');
+    const list=q('quickModelsList');
+    const meta=q('quickModelsMeta');
+    if(!card || !list) return;
+    const models=quickModelsCatalog.models||[];
+    if(!models.length){
+      card.hidden=true;
+      list.innerHTML='';
+      if(meta) meta.textContent='';
+      return;
+    }
+    card.hidden=false;
+    list.innerHTML='';
+    models.forEach(model=>{
+      const b=document.createElement('button');
+      b.type='button';
+      b.className='quick-model-btn';
+      b.innerHTML='<span></span><small></small>';
+      b.querySelector('span').textContent=model.nome;
+      b.querySelector('small').textContent=[model.categoria,model.versao].filter(Boolean).join(' · ');
+      b.onclick=()=>openQuickModel(model.id);
+      list.appendChild(b);
+    });
+    if(meta){
+      const base=quickModelsUpdatedLabel(quickModelsCatalog.updated_at);
+      meta.textContent=[base,quickModelsSource==='cache'?'cópia local':''].filter(Boolean).join(' · ');
+    }
+  }
+
+  function quickModelItemCount(model){
+    return model.medicamentos.length+model.solucoes.length+model.dietas.length+
+      model.medidas.length+model.exames.length+(model.ecg?1:0)+(model.radiografia?1:0)+
+      (model.observacao_geral?1:0);
+  }
+
+  function buildQuickModelModal(){
+    if(q('quickModelOverlay')) return;
+    const overlay=document.createElement('div');
+    overlay.id='quickModelOverlay';
+    overlay.className='no-print';
+    overlay.innerHTML=`
+      <div class="desk-modal" role="dialog" aria-modal="true" aria-label="Adicionar modelo rápido">
+        <div class="desk-modal-head">
+          <strong id="quickModelTitle" style="font-family:'Barlow Semi Condensed',sans-serif;text-transform:uppercase;">Modelo rápido</strong>
+          <span style="flex:1;"></span><span class="kbd">Esc</span>
+        </div>
+        <div class="review-body">
+          <div id="quickModelDescription" class="review-patient"></div>
+          <div id="quickModelNotice" class="quick-model-note" style="display:none;"></div>
+          <div id="quickModelPreview" class="quick-model-preview"></div>
+        </div>
+        <div class="review-actions">
+          <button class="btn btn-ghost" type="button" onclick="closeQuickModel()">Cancelar</button>
+          <button class="btn btn-teal" id="quickModelApplyBtn" type="button">Adicionar à prescrição</button>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+    overlay.addEventListener('mousedown',e=>{if(e.target===overlay)closeQuickModel();});
+  }
+
+  function quickModelPreviewLines(model){
+    const lines=[];
+    model.medicamentos.forEach(m=>lines.push('Medicação · '+[m.nome,m.dose,m.via,m.frequencia].filter(Boolean).join(' · ')));
+    model.solucoes.forEach(s=>lines.push('Solução · '+[s.nome,s.volume,s.frequencia].filter(Boolean).join(' · ')));
+    model.dietas.forEach(x=>lines.push('Dieta · '+text(typeof x==='string'?x:x.nome)));
+    model.medidas.forEach(x=>lines.push('Medida · '+text(typeof x==='string'?x:x.nome)));
+    model.exames.forEach(x=>lines.push('Exame · '+text(typeof x==='string'?x:x.nome)));
+    if(model.ecg) lines.push('Exame · ECG');
+    if(model.radiografia) lines.push('Radiografia · '+text(model.radiografia.texto||model.radiografia));
+    if(model.observacao_geral) lines.push('Observação · '+model.observacao_geral);
+    return lines;
+  }
+
+  window.openQuickModel=function(id){
+    const model=(quickModelsCatalog.models||[]).find(m=>m.id===id);
+    if(!model) return;
+    buildQuickModelModal();
+    q('quickModelTitle').textContent=model.nome;
+    q('quickModelDescription').innerHTML=
+      '<strong>'+escapeHtml(model.nome)+'</strong><br>'+
+      escapeHtml(model.descricao||(`${quickModelItemCount(model)} item(ns) serão acrescentados à prescrição atual.`));
+    const notice=q('quickModelNotice');
+    notice.textContent=model.aviso||'O modelo é um ponto de partida. Revise e ajuste todos os itens antes de imprimir.';
+    notice.style.display='block';
+    const preview=q('quickModelPreview');
+    preview.innerHTML='';
+    quickModelPreviewLines(model).forEach(line=>{
+      const div=document.createElement('div');
+      div.className='item';
+      div.textContent=line;
+      preview.appendChild(div);
+    });
+    q('quickModelApplyBtn').onclick=()=>applyQuickModel(model);
+    q('quickModelOverlay').classList.add('open');
+  };
+
+  window.closeQuickModel=function(){q('quickModelOverlay')?.classList.remove('open');};
+
+  function addModelMedication(m){
+    const name=text(m.nome||m.name).trim();
+    if(!name) return false;
+    const existing=meds.some(x=>text(x.name).trim().toLowerCase()===name.toLowerCase());
+    if(existing) return false;
+    const item={
+      id:'m'+(medSeq++),
+      name,
+      dose:text(m.dose||''),
+      via:viaPrimaria(text(m.via||'EV')),
+      dil:text(m.diluicao||m.dil||''),
+      useDil:!!(m.usar_diluicao||m.useDil||(m.diluicao||m.dil)),
+      aprazo:text(m.frequencia||m.aprazo||'AGORA'),
+      obs:text(m.observacao||m.obs||''),
+      ord:nextOrd()
+    };
+    if(!APRAZO_OPTS.includes(item.aprazo) && item.aprazo){
+      item.aprazoTexto=item.aprazo;
+      item.aprazo='__custom__';
+    }
+    meds.push(item);
+    return true;
+  }
+
+  function addModelSolution(s){
+    const name=text(s.nome||s.name).trim();
+    if(!name) return false;
+    const volume=text(s.volume||s.dose||'');
+    const lib=SOLUTION_LIBRARY.find(x=>x.name===name && (!volume || x.dose===volume));
+    const obj={
+      id:'sol'+(solSeq++),
+      base:lib?{name:lib.name,dose:lib.dose,via:lib.via}:{name:'__custom__',dose:'',via:text(s.via||'EV')},
+      aprazo:text(s.frequencia||s.aprazo||'AGORA'),
+      obs:text(s.observacao||s.obs||''),
+      meds:[],
+      ord:nextOrd()
+    };
+    if(!lib){obj.customName=name;obj.customDose=volume;}
+    if(!APRAZO_OPTS.includes(obj.aprazo) && obj.aprazo){
+      obj.aprazoTexto=obj.aprazo;
+      obj.aprazo='__custom__';
+    }
+    (Array.isArray(s.medicamentos)?s.medicamentos:[]).forEach(m=>{
+      const medName=text(m.nome||m.name).trim();
+      if(!medName) return;
+      obj.meds.push({
+        id:'sm'+(medSeq++),
+        name:medName,
+        dose:text(m.dose||''),
+        dil:text(m.diluicao||m.dil||''),
+        useDil:!!(m.usar_diluicao||m.useDil||(m.diluicao||m.dil))
+      });
+    });
+    solutions.push(obj);
+    return true;
+  }
+
+  function addModelDiet(value){
+    const name=text(typeof value==='string'?value:value?.nome).trim();
+    if(!name || diets.some(d=>text(d.name).trim().toLowerCase()===name.toLowerCase())) return false;
+    diets.push({name,ord:nextOrd()});
+    return true;
+  }
+
+  function addModelMeasure(value){
+    const name=text(typeof value==='string'?value:value?.nome).trim();
+    if(!name) return false;
+    let item=medidas.find(m=>text(m.text).trim().toLowerCase()===name.toLowerCase());
+    if(!item){
+      item={id:'md'+(medidas.length+100)+Date.now()+Math.random().toString(16).slice(2),text:name,checked:false};
+      medidas.push(item);
+    }
+    if(item.checked) return false;
+    item.checked=true;
+    item.ord=nextOrd();
+    return true;
+  }
+
+  function addModelExams(exams){
+    const names=exams.map(x=>text(typeof x==='string'?x:x?.nome).trim()).filter(Boolean);
+    if(!names.length) return 0;
+    const box=q('coletaLabsTexto');
+    const existing=text(box?.value).split(',').map(s=>s.trim()).filter(Boolean);
+    let added=0;
+    names.forEach(name=>{
+      if(!existing.some(x=>x.toLowerCase()===name.toLowerCase())){existing.push(name);added++;}
+    });
+    if(box) box.value=existing.join(', ');
+    if(q('coletaLabsCheck')){q('coletaLabsCheck').checked=true;marcarOrdem('coletaLabsCheck');}
+    try{renderExamChips();}catch(e){}
+    return added;
+  }
+
+  function applyQuickModel(model){
+    let added=0,skipped=0;
+    model.medicamentos.forEach(m=>addModelMedication(m)?added++:skipped++);
+    model.solucoes.forEach(s=>addModelSolution(s)?added++:skipped++);
+    model.dietas.forEach(x=>addModelDiet(x)?added++:skipped++);
+    model.medidas.forEach(x=>addModelMeasure(x)?added++:skipped++);
+    added+=addModelExams(model.exames);
+    if(model.ecg && q('ecgCheck') && !q('ecgCheck').checked){q('ecgCheck').checked=true;marcarOrdem('ecgCheck');added++;}
+    if(model.radiografia && q('rxCheck')){
+      const textRx=text(model.radiografia.texto||model.radiografia).trim();
+      if(!q('rxCheck').checked){q('rxCheck').checked=true;marcarOrdem('rxCheck');added++;}
+      if(textRx && q('rxTexto') && !q('rxTexto').value.trim()) q('rxTexto').value=textRx;
+    }
+    if(model.observacao_geral && q('generalObs')){
+      const current=q('generalObs').value.trim();
+      q('generalObs').value=current ? current+'\n'+model.observacao_geral : model.observacao_geral;
+      added++;
+    }
+    renderDietChips();
+    renderSolutions();
+    renderMeds();
+    renderChecklist('medidasGrid',medidas);
+    closeQuickModel();
+    markDirty();
+    schedulePreview();
+    saveDraft();
+    toast(model.nome+': '+added+' item(ns) adicionado(s)'+(skipped?' · '+skipped+' já existente(s) ignorado(s)':'')+'.');
   }
 
   function buildPatientRibbon(){
@@ -3867,7 +4194,7 @@ window.addEventListener('beforeprint', function(){
           e.preventDefault();duplicateFocusedMedication();
         }
       }else if(e.key==='Escape'){
-        fecharBuscaUniversal();fecharRevisao();
+        fecharBuscaUniversal();fecharRevisao();closeQuickModel();
       }
     });
   }
@@ -3911,6 +4238,8 @@ window.addEventListener('beforeprint', function(){
     buildTopActions();
     buildPatientRibbon();
     buildUniversalSearchLauncher();
+    buildQuickModelsCard();
+    buildQuickModelModal();
     movePreviewToThirdColumn();
     buildGeneralObservationCard();
     wrapPrescriptionBuilder();
@@ -3940,6 +4269,7 @@ window.addEventListener('beforeprint', function(){
       setTimeout(()=>q('pName')?.focus(),220);
     }
     setInterval(()=>updateDraftState(),15000);
+    loadQuickModels();
   }
 
   // O script é inserido no final do BODY, então o DOM e as funções originais já existem.
