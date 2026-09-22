@@ -584,6 +584,52 @@
   .topbar .desk-top-btn.danger:hover{background:#aa242d;border-color:#aa242d;}
   .topbar .desk-top-btn.primary{background:var(--amber);border-color:var(--amber);color:#fff;}
 
+  #universalSearchLauncher{
+    padding:12px 14px;
+    margin-bottom:12px;
+  }
+  #universalSearchLauncher .universal-launcher-title{
+    font:700 13px 'Barlow Semi Condensed',sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--teal-dark);
+    margin-bottom:7px;
+  }
+  #universalSearchLauncher .universal-launcher-btn{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    text-align:left;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    background:#fff;
+    color:var(--ink);
+    cursor:pointer;
+    font:500 12px 'Inter',sans-serif;
+  }
+  #universalSearchLauncher .universal-launcher-btn:hover,
+  #universalSearchLauncher .universal-launcher-btn:focus{
+    border-color:var(--teal);
+    box-shadow:var(--desk-focus);
+    outline:none;
+  }
+  #universalSearchLauncher .universal-launcher-btn .search-icon{
+    color:var(--teal-dark);
+    font-size:16px;
+  }
+  #universalSearchLauncher .universal-launcher-btn .search-placeholder{
+    flex:1;
+    color:var(--slate);
+  }
+  #universalSearchLauncher .universal-launcher-hint{
+    margin-top:6px;
+    color:var(--slate);
+    font-size:10.5px;
+    line-height:1.35;
+  }
+
   #patientRibbon{
     position:sticky; top:54px; z-index:80;
     background:#fff; border-bottom:1px solid var(--line);
@@ -752,7 +798,8 @@
   .dark-mode .field input,.dark-mode .field select,.dark-mode .field textarea,
   .dark-mode .med-row,.dark-mode .sol-meds,.dark-mode .sol-head select,
   .dark-mode .med-grid input,.dark-mode .med-grid select,.dark-mode .wait-item input,
-  .dark-mode .add-custom input,.dark-mode .quick-presets button{
+  .dark-mode .add-custom input,.dark-mode .quick-presets button,
+  .dark-mode #universalSearchLauncher .universal-launcher-btn{
     background:#162122;color:var(--ink);
   }
   .dark-mode .ps-main,.dark-mode .ps-patient{background:#fff;color:#000;}
@@ -2969,12 +3016,28 @@ window.addEventListener('beforeprint', function(){
     const box = document.createElement('div');
     box.className = 'desk-top-actions no-print';
     box.innerHTML = `
-      <button class="desk-top-btn" type="button" onclick="abrirBuscaUniversal()">⌕ Buscar <span class="kbd">Ctrl K</span></button>
       <button class="desk-top-btn" type="button" onclick="toggleDarkMode()">◐ Tema</button>
       <button class="desk-top-btn" type="button" onclick="novaPrescricao()">Nova prescrição <span class="kbd">Ctrl N</span></button>
       <button class="desk-top-btn danger" type="button" onclick="limparTudo()">🗑 Limpar tudo</button>
       <button class="desk-top-btn primary" type="button" onclick="abrirRevisaoImpressao()">Revisar / imprimir</button>`;
     top.appendChild(box);
+  }
+
+  function buildUniversalSearchLauncher(){
+    const main=document.querySelector('.wrap > div:nth-child(2)');
+    if(!main || q('universalSearchLauncher')) return;
+    const launcher=document.createElement('div');
+    launcher.id='universalSearchLauncher';
+    launcher.className='card no-print';
+    launcher.innerHTML=`
+      <div class="universal-launcher-title">Adicionar à prescrição</div>
+      <button class="universal-launcher-btn" type="button" onclick="abrirBuscaUniversal()" aria-label="Buscar e adicionar item à prescrição">
+        <span class="search-icon">⌕</span>
+        <span class="search-placeholder">Buscar medicação, solução, dieta, exame ou medida...</span>
+        <span class="kbd">Ctrl K</span>
+      </button>
+      <div class="universal-launcher-hint">Use esta busca para adicionar rapidamente qualquer item. As seções abaixo continuam disponíveis para preenchimento detalhado.</div>`;
+    main.insertAdjacentElement('afterbegin',launcher);
   }
 
   function buildPatientRibbon(){
@@ -3847,6 +3910,7 @@ window.addEventListener('beforeprint', function(){
   function initialize(){
     buildTopActions();
     buildPatientRibbon();
+    buildUniversalSearchLauncher();
     movePreviewToThirdColumn();
     buildGeneralObservationCard();
     wrapPrescriptionBuilder();
