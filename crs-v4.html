@@ -13,7 +13,7 @@
 /* CRS finalization flow: keep the editor tall and move destination to a focused final step. */
 .finish-bar{background:#fff;border-top:1px solid var(--line);padding:7px 12px calc(7px + env(safe-area-inset-bottom));box-shadow:0 -5px 18px rgba(32,66,96,.055)}
 .finish-bar-inner{max-width:1460px;margin:0 auto;min-height:42px;display:flex;align-items:center;justify-content:flex-end;gap:12px}
-.draft-state{margin-right:auto;display:flex;align-items:center;gap:7px;min-width:0;color:var(--dim);font-size:10.5px}
+.draft-state{margin-right:auto;display:flex;align-items:center;gap:7px;min-width:0;color:var(--dim);font-size:10.5px}.draft-state #save-state.ok{color:#247d59}.draft-state #save-state.err{color:#b7252f}
 .draft-dot{width:7px;height:7px;border-radius:50%;background:#78a6c8;flex:0 0 auto}
 .finish-open{min-width:170px;min-height:38px;font-size:12px!important}
 .finish-modal{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:18px;background:rgba(15,34,51,.34);backdrop-filter:blur(2px)}
@@ -39,7 +39,7 @@
 .finish-hint{margin-top:12px;padding:9px 10px;border-radius:9px;background:#f5f9fc;color:#62798b;font-size:10.5px;line-height:1.4}
 .finish-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin-top:16px;padding-top:14px;border-top:1px solid #edf2f6}
 .finish-actions .btn{min-height:40px}
-.finish-actions .finish-back{margin-right:auto}
+.finish-actions .finish-back{margin-right:auto}.toast{z-index:150}
 @media(max-width:650px){
   .finish-bar{padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
   .finish-bar-inner{min-height:40px}
@@ -108,7 +108,7 @@ function localSave(){if(clearedSession)return;try{localStorage.setItem(draftKey,
 function localLoad(){if(clearedSession)return null;try{return JSON.parse(localStorage.getItem(draftKey)||'null')}catch{return null}}
 function setBusy(on){finishSaveBtn.disabled=on;finishSavePrintBtn.disabled=on;openFinalizerBtn.disabled=on;topClear.disabled=on}
 function requestSave(dest='salvar',sec=''){const p=patient();if(!p.name)return Promise.reject(new Error('Não consegui localizar o campo Nome do paciente. Atualize a página e tente novamente.'));const snap=snapshot();try{localStorage.setItem(draftKey,JSON.stringify(snap))}catch{}const requestId=uid();return new Promise((resolve,reject)=>{const timeout=setTimeout(()=>{pendingRequests.delete(requestId);reject(new Error('A Central CRS não confirmou o salvamento.'))},10000);pendingRequests.set(requestId,{resolve,reject,timeout});try{post({type:'CRS_PRESCRIPTION_SAVE_V2',requestId,patientId,patient:p,destination:dest,sector:sec,snapshot:snap})}catch(e){clearTimeout(timeout);pendingRequests.delete(requestId);reject(e)}})}
-async function centralSave(dest='salvar',sec='',show=true){setBusy(true);setStatus('Salvando…');try{const result=await requestSave(dest,sec);setStatus(dest==='salvar'?'Prévia salva':'Versão final salva','ok');const p=patient();if(p.name)patientLabel.textContent=p.name+(p.age?' · '+p.age+' a':'');saveState.textContent=result?.warning||('Confirmado pela Central CRS às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));saveState.className=result?.warning?'save-state err':'save-state ok';if(show)toast(result?.warning||(dest==='salvar'?'Prévia salva na Central CRS.':'Prescrição salva e destino aplicado.'),!!result?.warning);return result||true}catch(e){setStatus('Falha ao salvar','err');saveState.textContent=e.message||'Falha ao salvar.';saveState.className='save-state err';toast(e.message||'Falha ao salvar.',true);return false}finally{setBusy(false)}}
+async function centralSave(dest='salvar',sec='',show=true){setBusy(true);setStatus('Salvando…');try{const result=await requestSave(dest,sec);setStatus(dest==='salvar'?'Prévia salva':'Versão final salva','ok');const p=patient();if(p.name)patientLabel.textContent=p.name+(p.age?' · '+p.age+' a':'');saveState.textContent=result?.warning||('Confirmado pela Central CRS às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}));saveState.className=result?.warning?'err':'ok';if(show)toast(result?.warning||(dest==='salvar'?'Prévia salva na Central CRS.':'Prescrição salva e destino aplicado.'),!!result?.warning);return result||true}catch(e){setStatus('Falha ao salvar','err');saveState.textContent=e.message||'Falha ao salvar.';saveState.className='err';toast(e.message||'Falha ao salvar.',true);return false}finally{setBusy(false)}}
 function buttons(doc){return[...doc.querySelectorAll('button,.btn,input[type="button"],input[type="submit"]')]}
 function buttonText(el){return norm(el.textContent||el.value||el.getAttribute('aria-label')||'')}
 function findButton(doc,test){return buttons(doc).find(el=>test(buttonText(el)))||null}
