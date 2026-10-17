@@ -1001,7 +1001,8 @@
     <div class="footer-actions">
       <button class="btn btn-ghost" onclick="limparItens()">Limpar itens</button>
       <button class="btn btn-ghost" onclick="limparTudo()">Limpar tudo</button>
-      <button class="btn btn-teal" onclick="abrirRevisaoImpressao()">Revisar e imprimir / PDF →</button>
+      <button class="btn btn-ghost" type="button" onclick="abrirRevisaoPDF()">⬇ Salvar PDF</button>
+      <button class="btn btn-teal" onclick="abrirRevisaoImpressao()">Revisar e imprimir →</button>
     </div>
 
   </div>
@@ -2602,7 +2603,7 @@ function restaurarGiroVerso(){
 }
 
 /* ============ IMPRESSÃO ============ */
-function gerarImpressao(){
+function gerarImpressao(modo='impressao'){
   updateHeaderFields('');
   const items = buildPrescriptionItems();
   // folha 1: os primeiros LINHAS_FOLHA itens; o excedente vai para a folha 3
@@ -2632,13 +2633,14 @@ function gerarImpressao(){
     alert('ECG solicitado: o FORMULÁRIO DE TELECARDIO será impresso automaticamente '
       + 'em 2 páginas A4 no formato retrato, em um trabalho de impressão separado.');
   }
-  abrirImpressaoNovaAba();
+  abrirImpressaoNovaAba(modo);
 }
 
 /* Abre as folhas prontas em uma nova aba, já no diálogo de impressão.
    Assim o prescritor escolhe "Frente e verso" / "Salvar como PDF" sem
    sair do formulário — os dados preenchidos continuam intactos aqui. */
-function abrirImpressaoNovaAba(){
+function abrirImpressaoNovaAba(modo='impressao'){
+  const exportarPDF=modo==='pdf';
   // A prescrição é paisagem e a ficha GIF é retrato. O Chrome não imprime
   // orientações diferentes de forma confiável no mesmo trabalho, então cada
   // uma vai para a sua própria aba/trabalho de impressão.
@@ -2646,9 +2648,13 @@ function abrirImpressaoNovaAba(){
     ids: ['printSheet', 'printSheet2', 'printSheet3'],
     orientacao: 'landscape',
     titulo: 'Prescrição Médica',
-    aviso: 'Marque <b>"Imprimir nos dois lados" / "Frente e verso"</b> (em <i>Mais configurações</i>), '
-         + 'de preferência com virada pela <b>borda curta</b>. A ficha de observação é a 2ª página '
-         + 'e deve sair no verso da prescrição.<br>Para gerar um arquivo, escolha <b>"Salvar como PDF"</b> em Destino.'
+    aviso: exportarPDF
+      ? 'Para salvar o documento, selecione <b>"Salvar como PDF"</b> como destino da impressão. '
+        + 'No iPhone ou iPad, compartilhe a prévia para <b>Salvar em Arquivos</b>. '
+        + 'A ficha de observação acompanha a prescrição na segunda página.'
+      : 'Marque <b>"Imprimir nos dois lados" / "Frente e verso"</b> (em <i>Mais configurações</i>), '
+        + 'de preferência com virada pela <b>borda curta</b>. A ficha de observação é a 2ª página '
+        + 'e deve sair no verso da prescrição.<br>Para gerar um arquivo, escolha <b>"Salvar como PDF"</b> em Destino.'
   });
 
   if(temCeftriaxona()){
@@ -2960,6 +2966,7 @@ window.addEventListener('beforeprint', function(){
       <button class="desk-top-btn" type="button" onclick="toggleDarkMode()">◐ Tema</button>
       <button class="desk-top-btn" type="button" onclick="novaPrescricao()">Nova prescrição</button>
       <button class="desk-top-btn danger" type="button" onclick="limparTudo()">🗑 Limpar tudo</button>
+      <button class="desk-top-btn" type="button" onclick="abrirRevisaoPDF()">⬇ Salvar PDF</button>
       <button class="desk-top-btn primary" type="button" onclick="abrirRevisaoImpressao()">Revisar / imprimir</button>`;
     top.appendChild(box);
   }
@@ -3493,13 +3500,14 @@ window.addEventListener('beforeprint', function(){
     overlay.innerHTML=`
       <div class="desk-modal" role="dialog" aria-modal="true" aria-label="Revisão da prescrição">
         <div class="desk-modal-head">
-          <strong style="font-family:'Barlow Semi Condensed',sans-serif;text-transform:uppercase;">Revisar prescrição</strong>
+          <strong id="reviewTitle" style="font-family:'Barlow Semi Condensed',sans-serif;text-transform:uppercase;">Revisar prescrição</strong>
           <span style="flex:1;"></span>
           <span class="kbd">Esc</span>
         </div>
         <div class="review-body">
           <div class="review-patient" id="reviewPatient"></div>
           <div id="reviewContent"></div>
+          <div id="reviewExportHint" class="review-item" style="display:none;margin-top:10px;"></div>
         </div>
         <div class="review-actions">
           <button class="btn btn-ghost" type="button" onclick="fecharRevisao()">Voltar e corrigir</button>
@@ -3510,9 +3518,11 @@ window.addEventListener('beforeprint', function(){
     overlay.addEventListener('mousedown',e=>{if(e.target===overlay)fecharRevisao();});
   }
 
-  window.abrirRevisaoImpressao=function(){
+  window.abrirRevisaoImpressao=function(modo='impressao'){
+    const exportarPDF=modo==='pdf';
     atualizarPreview();
     buildReviewModal();
+    q('reviewTitle').textContent=exportarPDF?'Revisar e salvar PDF':'Revisar prescrição';
     const issues=structuralIssues();
     const items=buildPrescriptionItems();
     q('reviewPatient').innerHTML =
@@ -3529,18 +3539,22 @@ window.addEventListener('beforeprint', function(){
       issues.forEach(i=>{
         const div=document.createElement('div');div.className='review-item';div.textContent='⚠ '+i.msg;list.appendChild(div);
       });
-      q('reviewPrintBtn').textContent='Imprimir mesmo assim';
+      q('reviewPrintBtn').textContent=exportarPDF?'Continuar para PDF mesmo assim':'Imprimir mesmo assim';
     }else{
       content.innerHTML='<div class="review-ok">✓ Nenhum campo estrutural incompleto foi identificado. A revisão clínica continua sendo responsabilidade do prescritor.</div>';
-      q('reviewPrintBtn').textContent='Imprimir / salvar PDF';
+      q('reviewPrintBtn').textContent=exportarPDF?'Continuar para PDF':'Imprimir';
     }
+    const pdfHint=q('reviewExportHint');
+    pdfHint.style.display=exportarPDF?'block':'none';
+    if(exportarPDF) pdfHint.textContent='Na janela de impressão, escolha Salvar como PDF. No iPhone ou iPad, abra a prévia e use Compartilhar → Salvar em Arquivos. A prescrição e a ficha de observação serão incluídas no arquivo; formulários complementares podem abrir separadamente.';
     q('reviewPrintBtn').onclick=()=>{
       fecharRevisao();
       saveDraft();
-      gerarImpressao();
+      gerarImpressao(exportarPDF?'pdf':'impressao');
     };
     q('reviewOverlay').classList.add('open');
   };
+  window.abrirRevisaoPDF=function(){window.abrirRevisaoImpressao('pdf');};
   window.fecharRevisao=function(){q('reviewOverlay')?.classList.remove('open');};
 
   function targetForKey(key){
