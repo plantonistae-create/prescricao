@@ -825,6 +825,17 @@
     #desktopPreviewColumn{grid-column:auto;}
     #patientRibbon{top:52px;overflow:auto;white-space:nowrap;}
   }
+  /* Extra action: prevent the header from overflowing on phones. */
+  @media (max-width:860px){
+    .topbar{position:relative;flex-wrap:wrap;gap:8px;padding:10px 12px;}
+    .topbar > span{display:none;}
+    .topbar .desk-top-actions{width:100%;margin-left:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;}
+    .topbar .desk-top-btn{white-space:normal;min-width:0;}
+    #patientRibbon{position:static;top:auto;}
+  }
+  @media (max-width:520px){
+    .topbar .desk-top-actions{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
   @media print{
     #patientRibbon,#universalSearchOverlay,#reviewOverlay,.desk-toast-host{display:none !important;}
   }
