@@ -39,6 +39,24 @@ jobs:
             pages="$(pdfinfo "$path" | awk '/^Pages:/ {print $2}')"
             echo "$path: $pages página(s)"
             test "$pages" -eq 2 || { echo "::error::$path: Word precisa ter exatamente duas páginas"; exit 1; }
+            page1="$(pdftotext -f 1 -l 1 "$path" -)"
+            page2="$(pdftotext -f 2 -l 2 "$path" -)"
+            echo "$page1" | grep -Fq 'Assinatura e carimbo do(a) médico(a)' || {
+              echo "::error::$path: assinatura médica ausente na frente (página 1)"; exit 1;
+            }
+            if echo "$page2" | grep -Fq 'Assinatura e carimbo do(a) médico(a)'; then
+              echo "::error::$path: assinatura médica indevidamente no verso"; exit 1;
+            fi
+            if echo "$page1" | grep -Fq 'SINAIS VITAIS'; then
+              echo "::error::$path: sinais vitais vazaram para a primeira página"; exit 1;
+            fi
+            echo "$page2" | grep -Fq 'SINAIS VITAIS' || {
+              echo "::error::$path: sinais vitais ausentes no verso (página 2)"; exit 1;
+            }
+            echo "$page2" | grep -Fq 'RELATÓRIO / ANOTAÇÕES DE ENFERMAGEM' || {
+              echo "::error::$path: anotações de enfermagem ausentes no verso"; exit 1;
+            }
+            echo "$path: assinatura na frente, sinais vitais e enfermagem no verso."
           done
           test "$(pdfinfo artifacts/qa/prescricao-e-cartao.pdf | awk '/^Pages:/ {print $2}')" = 3 || { echo "::error::Prescrição + cartão novo precisa ter 3 páginas"; exit 1; }
           test "$(pdfinfo artifacts/qa/ficha-gif.pdf | awk '/^Pages:/ {print $2}')" = 2 || { echo "::error::Ficha GIF antiga precisa ter 2 páginas"; exit 1; }
