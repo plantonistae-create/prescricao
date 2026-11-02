@@ -100,6 +100,13 @@
     return new Blob([...chunks,...central,end],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
   }
   function gerarWord(){
+    // Mais de 28 itens exigem continuação na versão impressa. Não gerar um
+    // Word de 3+ páginas nem omitir prescrições silenciosamente.
+    const qtdItens=buildPrescriptionItems().length;
+    if(qtdItens>28){
+      alert('A prescrição contém '+qtdItens+' itens. Para preservar todos os dados, não é possível garantir um Word de apenas duas páginas. Reduza a quantidade de itens ou use a impressão com folha de continuação.');
+      return;
+    }
     const contentTypes='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
       '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
       '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
@@ -137,7 +144,7 @@
     }
     if(hint){
       hint.style.display='block';
-      hint.textContent='Download direto de arquivo .docx editável (prescrição e ficha de observação). A ficha GIF e o cartão da ceftriaxona permanecem no fluxo de impressão.';
+      hint.textContent='Download direto de arquivo .docx editável (prescrição e ficha de observação). A ficha GIF e o cartão da ceftriaxona permanecem no fluxo de impressão. Para mais de 28 itens, use o fluxo de impressão com folha de continuação.';
     }
   };
   function trocarBotoes(){
