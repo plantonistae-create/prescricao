@@ -49,6 +49,13 @@ assert.ok(pages.length>=2, 'Esperadas abas independentes para a prescrição e G
 const html1=await pages[0].content(),html2=await pages[1].content();
 assert.match(html1,/cefCardSheet/);
 assert.match(html2,/gifSheet1/);
+assert.match(html2,/gifSheet2/);
+assert.match(await pages[0].locator('.aviso-impressao').innerText(),/FICHA GIF ANTIGA/);
+assert.equal(await pages[0].locator('button[onclick*="reimprimirFichaGIF"]').count(),1,
+  'botão de reimpressão da ficha GIF presente');
+assert.ok(await pages[1].locator('#gifSheet1').evaluate(el=>!el.classList.contains('vazia')));
+assert.ok(await pages[1].locator('#gifSheet2').evaluate(el=>!el.classList.contains('vazia')));
+
 const imagem=pages[0].locator('#cefCardSheet img.cef-original-page');
 await imagem.waitFor({state:'attached'});
 await pages[0].waitForFunction(()=>{
