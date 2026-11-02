@@ -2655,6 +2655,26 @@ function abrirImpressaoNovaAba(modo='impressao'){
   const abaPrescricao=window.open('', '_blank');
   const abaGIF=incluirGIF ? window.open('', '_blank') : null;
   const abaECG=incluirECG ? window.open('', '_blank') : null;
+
+  // A ficha GIF antiga continua obrigatória e pode ser reimpressa pela
+  // própria aba da prescrição, caso o navegador suprima o segundo diálogo.
+  let gifPreparada=false;
+  const cfgGIF={
+    ids:['gifSheet1','gifSheet2'],
+    orientacao:'portrait',
+    titulo:'Ficha GIF — Protocolo Gerenciado de Infecções (formulário antigo)',
+    aviso:'FICHA GIF ORIGINAL — 2 páginas A4 retrato. Este documento é obrigatório junto com o cartão de controle de dose da ceftriaxona.'
+  };
+  window.reimprimirFichaGIF=function(){
+    if(!incluirGIF)return;
+    if(abaGIF && !abaGIF.closed && gifPreparada){
+      abaGIF.focus();
+      abaGIF.print();
+    }else{
+      abrirAbaDeImpressao(cfgGIF);
+    }
+  };
+
   abrirAbaDeImpressao({
     janela: abaPrescricao,
     ids: ['printSheet', 'printSheet2', 'printSheet3'].concat(temCeftriaxona() ? ['cefCardSheet'] : []),
@@ -2667,20 +2687,18 @@ function abrirImpressaoNovaAba(modo='impressao'){
       : 'Marque <b>"Imprimir nos dois lados" / "Frente e verso"</b> (em <i>Mais configurações</i>), '
         + 'de preferência com virada pela <b>borda curta</b>. A ficha de observação é a 2ª página '
         + 'e deve sair no verso da prescrição.<br>Para gerar um arquivo, escolha <b>"Salvar como PDF"</b> em Destino.'
+         + (incluirGIF
+           ? '<p><b>CEFTRIAXONA — IMPRIMIR TODOS OS DOCUMENTOS:</b> este trabalho inclui a prescrição (2 páginas) + o cartão novo de controle de dose (1 página, paisagem). '
+             + 'A FICHA GIF ANTIGA (2 páginas, retrato) abre em outra aba. <b>Imprima também essa ficha.</b></p>'
+             + '<button type="button" onclick="window.opener?.reimprimirFichaGIF()">🖨️ Reimprimir ficha GIF antiga (2 páginas)</button>'
+           : '')
   });
 
   if(incluirGIF){
     // pequena espera para o navegador não descartar a segunda aba
     setTimeout(function(){
-      abrirAbaDeImpressao({
-        janela: abaGIF,
-        ids: ['gifSheet1', 'gifSheet2'],
-        orientacao: 'portrait',
-        titulo: 'Ficha GIF — Protocolo Gerenciado de Infecções',
-        aviso: 'Esta é a <b>FICHA GIF</b>, impressa em <b>A4 retrato</b> (2 páginas), separada da '
-             + 'prescrição porque a orientação do papel é diferente.<br>'
-             + 'Deve ser preenchida pela enfermagem, médico e farmácia.'
-      });
+      abrirAbaDeImpressao({...cfgGIF,janela:abaGIF});
+      gifPreparada=true;
     }, 700);
   }
 
@@ -3561,6 +3579,10 @@ window.addEventListener('beforeprint', function(){
     const pdfHint=q('reviewExportHint');
     pdfHint.style.display=exportarPDF?'block':'none';
     if(exportarPDF) pdfHint.textContent='Na janela de impressão, escolha Salvar como PDF. No iPhone ou iPad, abra a prévia e use Compartilhar → Salvar em Arquivos. A prescrição e a ficha de observação serão incluídas no arquivo; formulários complementares podem abrir separadamente.';
+    if(!exportarPDF && temCeftriaxona()){
+      pdfHint.style.display='block';
+      pdfHint.textContent='CEFTRIAXONA: imprimir 1) prescrição + cartão novo (3 folhas paisagem) e 2) ficha GIF antiga (2 folhas retrato). Os dois trabalhos abrem automaticamente; se a ficha GIF não aparecer, utilize o botão de reimpressão na aba da prescrição.';
+    }
     q('reviewPrintBtn').onclick=()=>{
       fecharRevisao();
       saveDraft();
