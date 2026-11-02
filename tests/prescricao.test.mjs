@@ -122,3 +122,27 @@ test('ceftriaxona anexa cartão extra sem remover a ficha GIF',()=>{
   assert.match(cef,/class="cef-dual"/);
   assert.match(cef,/function\(\)\{/);
 });
+
+
+test('impressão abre as janelas de ceftriaxona/ECG no clique, antes dos atrasos',()=>{
+  const m=html.match(/function abrirImpressaoNovaAba\(modo='impressao'\)\{[\s\S]*?\n\}\n\nfunction abrirAbaDeImpressao\(cfg\)\{/);
+  assert.ok(m,'a função de impressão existe');
+  const fn=m[0].slice(0,m[0].lastIndexOf('\n\nfunction abrirAbaDeImpressao'));
+  for(const [gif,ecg,janelas] of [[false,false,1],[true,false,2],[false,true,2],[true,true,3]]){
+    const abertas=[],jobs=[];
+    let timers=0;
+    const window={open(){const tab={id:abertas.length};abertas.push(tab);return tab;}};
+    const abrirAbaDeImpressao=cfg=>jobs.push(cfg);
+    const setTimeout=fn=>{timers++;assert.equal(abertas.length,janelas,'abas abertas antes dos timers');fn();};
+    vm.runInNewContext(fn+'\nabrirImpressaoNovaAba("impressao");',
+      {window,temCeftriaxona:()=>gif,temSolicitacaoECG:()=>ecg,abrirAbaDeImpressao,setTimeout});
+    assert.equal(abertas.length,janelas);
+    assert.equal(jobs.length,janelas);
+    assert.ok(jobs[0].ids.includes('printSheet'));
+    assert.equal(jobs[0].ids.includes('cefCardSheet'),gif);
+    assert.equal(jobs.some(x=>x.ids.includes('gifSheet1')),gif);
+    assert.equal(jobs.some(x=>x.ids.includes('ecgFormSheet1')),ecg);
+    assert.ok(jobs.every((job,i)=>job.janela===abertas[i]));
+    assert.equal(timers,janelas-1);
+  }
+});
