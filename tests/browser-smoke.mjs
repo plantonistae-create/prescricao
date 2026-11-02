@@ -109,6 +109,54 @@ const stressDownloadPending=stress.waitForEvent('download');
 await stress.locator('#reviewPrintBtn').click();
 const stressDownload=await stressDownloadPending;
 await stressDownload.saveAs(resolve(dir,'prescricao-28-itens.docx'));
+
+// Regressão de impressão ECG: os 2 formulários devem estar prontos logo após
+// o clique (sem aguardar timers e sem aba about:blank).
+async function validarECG(comCeftriaxona){
+  const ecgPrescricao=await context.newPage();
+  ecgPrescricao.on('pageerror',e=>errors.push('ecg: '+e.message));
+  await ecgPrescricao.goto(pathToFileURL(resolve('index.html')).href,{waitUntil:'domcontentloaded'});
+  await ecgPrescricao.locator('#pName').fill(comCeftriaxona?'TESTE ECG E CEFTRIAXONA':'TESTE ECG ISOLADO');
+  await ecgPrescricao.locator('#ecgCheck').check();
+  if(comCeftriaxona){
+    await ecgPrescricao.locator('#medSearch').fill('Ceftriaxona 1g');
+    await ecgPrescricao.locator('#medLib .med-chip').filter({hasText:'Ceftriaxona 1g'}).first().click();
+  }
+  const antes=new Set(context.pages());
+  await ecgPrescricao.locator('.desk-top-actions .desk-top-btn.primary').click();
+  await ecgPrescricao.locator('#reviewPrintBtn').click();
+  const abertas=context.pages().filter(p=>!antes.has(p));
+  assert.equal(abertas.length, comCeftriaxona?3:2,'Abertura de prescrição + ECG + GIF quando aplicável');
+  const primeira=abertas[0],formularioECG=abertas.at(-1);
+  // O evento de clique terminou: a aba do ECG já deve estar preenchida.
+  assert.ok((await formularioECG.content()).includes('ecgFormSheet1'),'ECG página 1 presente imediatamente');
+  assert.ok((await formularioECG.content()).includes('ecgFormSheet2'),'ECG página 2 presente imediatamente');
+  assert.match(await formularioECG.title(),/Eletrocardiograma/);
+  await formularioECG.waitForFunction(()=>{
+    return ['ecgFormSheet1','ecgFormSheet2'].every(id=>{
+      const el=document.getElementById(id),img=el?.querySelector('img');
+      return el && !el.classList.contains('vazia') && img?.complete &&
+        img.naturalWidth>0 && img.naturalHeight>0;
+    });
+  },null,{timeout:15000});
+  const aviso=await primeira.locator('.aviso-impressao').innerText();
+  assert.match(aviso,/ECG — DOCUMENTO COMPLEMENTAR/);
+  assert.equal(await primeira.locator('button[onclick*="reimprimirFormularioECG"]').count(),1);
+  if(comCeftriaxona){
+    assert.ok((await abertas[1].content()).includes('gifSheet1'));
+    assert.ok((await primeira.content()).includes('cefCardSheet'));
+  }
+  await formularioECG.pdf({
+    path:resolve(dir,comCeftriaxona?'formulario-ecg-com-ceftriaxona.pdf':'formulario-ecg-isolado.pdf'),
+    printBackground:true,preferCSSPageSize:true
+  });
+  await formularioECG.screenshot({
+    path:resolve(dir,comCeftriaxona?'ecg-com-ceftriaxona.png':'ecg-isolado.png'),
+    fullPage:false
+  });
+}
+await validarECG(false);
+await validarECG(true);
 assert.deepEqual(errors,[]);
 await browser.close();
 console.log('Navegador QA: BIC, Word, ceftriaxona, GIF, PDF paisagem e ausência de erros JS aprovados.');
