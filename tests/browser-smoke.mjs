@@ -12,7 +12,17 @@ const context=await browser.newContext({viewport:{width:1440,height:1000},accept
 const page=await context.newPage(),errors=[];
 page.on('pageerror',e=>errors.push('app: '+e.message));
 await page.goto(pathToFileURL(resolve('index.html')).href,{waitUntil:'domcontentloaded'});
-await page.locator('#bicMedicamento').waitFor({timeout:20000});
+await page.waitForTimeout(800);
+console.log('DIAGNÓSTICO DOM', JSON.stringify(await page.evaluate(()=>({
+  url:location.href,
+  card:document.querySelector('#bicCard')?.outerHTML?.slice(0,350)??null,
+  medCards:[...document.querySelectorAll('.wrap .card h2')].map(x=>x.textContent),
+  scripts:[...document.scripts].map(s=>s.src).filter(Boolean),
+  ready:document.readyState
+}))));
+console.log('ERROS AO INICIAR',errors);
+await page.screenshot({path:resolve(dir,'diagnostico-inicial.png'),fullPage:false});
+await page.locator('#bicMedicamento').waitFor({state:'attached',timeout:8000});
 await page.locator('#pName').fill('PACIENTE TESTE QA');
 await page.locator('#pAge').fill('44 anos');
 await page.locator('#pDoc').fill('000.000.000-00');
