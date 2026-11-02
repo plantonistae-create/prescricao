@@ -40,6 +40,7 @@
     '.cef-brand strong{display:block;color:#176da0;font:bold 23px Arial;line-height:1;}',
     '.cef-brand small{display:block;font-size:7px;}',
     '.cef-brasao{font-size:28px;color:#517f9b;text-align:center;margin-left:auto;}',
+    '.cef-brasao img{max-width:55px;max-height:44px;object-fit:contain;}',
     '.cef-unit{font-size:17px;line-height:1.3;}',
     '.cef-title{text-align:center;font-weight:700;font-size:11px;margin:6mm 0 5mm;}',
     '.cef-body{font-size:9.5px;line-height:1.5;display:flex;flex-direction:column;flex:1;}',
@@ -60,6 +61,19 @@
   sheet.id='cefCardSheet';
   sheet.className='gif-sheet cef-card-sheet vazia';
   sheet.innerHTML='<div class="cef-dual">'+metade()+metade()+'</div>';
+  // Reutiliza os símbolos institucionais já incorporados ao modelo de impressão.
+  const logos=Array.from(document.querySelectorAll('#printSheet .ps-headtable .ps-logo img'));
+  if(logos.length>=2){
+    sheet.querySelectorAll('.cef-half').forEach(half=>{
+      half.querySelectorAll('.cef-brasao').forEach((slot,i)=>{
+        const src=logos[i]?.getAttribute('src');
+        if(src && src.startsWith('data:image/')){
+          const img=document.createElement('img');img.src=src;img.alt='Identificação institucional';
+          slot.textContent='';slot.appendChild(img);
+        }
+      });
+    });
+  }
   document.body.appendChild(sheet);
   // Não muda a saída da ficha GIF; o cartão é incluído na mesma tarefa A4 paisagem da prescrição.
   const originalMontar=window.montarFichaGIF;
