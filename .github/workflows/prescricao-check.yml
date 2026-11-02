@@ -26,6 +26,20 @@ jobs:
           test -n "$CHROME_BIN"
           export CHROME_BIN
           node tests/browser-smoke.mjs
+      - name: Validar duas páginas reais do Word (LibreOffice)
+        run: |
+          if ! command -v libreoffice >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq libreoffice-writer poppler-utils
+          fi
+          mkdir -p artifacts/qa/word-render
+          libreoffice -env:UserInstallation=file:///tmp/lo-prescricao-qa --headless --convert-to pdf --outdir artifacts/qa/word-render \
+            artifacts/qa/prescricao-qa.docx artifacts/qa/prescricao-28-itens.docx
+          for path in artifacts/qa/word-render/*.pdf; do
+            pages="$(pdfinfo "$path" | awk '/^Pages:/ {print $2}')"
+            echo "$path: $pages página(s)"
+            test "$pages" -eq 2 || { echo "::error::$path: Word precisa ter exatamente duas páginas"; exit 1; }
+          done
       - name: Guardar evidências de navegação e impressão
         if: always()
         uses: actions/upload-artifact@v4
