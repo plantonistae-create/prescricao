@@ -49,6 +49,18 @@ assert.ok(pages.length>=2, 'Esperadas abas independentes para a prescrição e G
 const html1=await pages[0].content(),html2=await pages[1].content();
 assert.match(html1,/cefCardSheet/);
 assert.match(html2,/gifSheet1/);
+const imagem=pages[0].locator('#cefCardSheet img.cef-original-page');
+await imagem.waitFor({state:'attached'});
+await pages[0].waitForFunction(()=>{
+  const img=document.querySelector('#cefCardSheet img.cef-original-page');
+  return img?.complete && img.naturalWidth===1684 && img.naturalHeight===1191;
+},{timeout:15000});
+const imagemInfo=await imagem.evaluate(img=>({
+  width:img.naturalWidth,height:img.naturalHeight,src:img.currentSrc
+}));
+assert.match(imagemInfo.src,/assets\/ceftriaxona_pagina_original.png$/);
+assert.equal(imagemInfo.width,1684);
+assert.equal(imagemInfo.height,1191);
 await pages[0].pdf({path:resolve(dir,'prescricao-e-cartao.pdf'),preferCSSPageSize:true,printBackground:true});
 await pages[1].pdf({path:resolve(dir,'ficha-gif.pdf'),preferCSSPageSize:true,printBackground:true});
 await pages[0].screenshot({path:resolve(dir,'preview-impressao-paisagem.png'),fullPage:false});
