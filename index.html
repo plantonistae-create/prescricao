@@ -1012,7 +1012,7 @@
     <div class="footer-actions">
       <button class="btn btn-ghost" onclick="limparItens()">Limpar itens</button>
       <button class="btn btn-ghost" onclick="limparTudo()">Limpar tudo</button>
-      <button class="btn btn-ghost" type="button" onclick="abrirRevisaoPDF()">⬇ Salvar PDF</button>
+      <button class="btn btn-ghost" type="button" onclick="abrirRevisaoWord()">⬇ Salvar Word</button>
       <button class="btn btn-teal" onclick="abrirRevisaoImpressao()">Revisar e imprimir →</button>
     </div>
 
@@ -1374,6 +1374,7 @@ const MED_LIBRARY = [
   {name:"Diclofenaco 75mg/3mL", dose:"1 ampola", via:"IM", dil:"aplicar IM profundo, sem diluição; não usar EV", principal:true},
   {name:"Morfina 10mg/mL", dose:"1 ampola, diluir e titular conforme dor", via:"EV", dil:"diluir 1 ampola em 9mL AD (1mg/mL), administrar lento em bolus titulado", principal:true},
   {name:"Paracetamol 10mg/mL (frasco 100mL)", dose:"1 frasco (1000mg)", via:"EV", dil:"infundir puro em 15min (não diluir)", principal:true},
+  {name:"Paracetamol 500mg comprimido", dose:"1 comprimido (500mg)", via:"VO", dil:""},
 
   // Antieméticos / antiespasmódicos / gastro
   {name:"Bromoprida 5mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"EV direto lento ou diluir em 20mL SF 0,9%", principal:true},
@@ -1391,7 +1392,7 @@ const MED_LIBRARY = [
   // Respiratório
   {name:"Salbutamol 100mcg/jato (spray)", dose:"6-10 jatos", via:"Inalatória", dil:"usar com espaçador, 1 jato por vez", principal:true},
   {name:"Salbutamol solução para nebulização 5mg/mL", dose:"2,5-5mg (10-20 gotas)", via:"Inalatória", dil:"diluir em 3-5mL SF 0,9% para nebulização", principal:true},
-  {name:"Ipratrópio (Atrovent)", dose:"20-40 gotas", via:"Inalatória", dil:"diluir em 3-5mL SF 0,9%, associar ao salbutamol se prescrito", principal:true},
+  {name:"Brometo de ipratrópio 0,25mg/mL (solução para nebulização / Atrovent)", dose:"20-40 gotas", via:"Inalatória", dil:"diluir em 3-5mL SF 0,9%, associar ao salbutamol se prescrito", principal:true},
 
   // Insulinas
   {name:"Insulina Regular (humana) 100UI/mL", dose:"conforme HGT / prescrição", via:"SC", dil:"", principal:true},
@@ -1401,7 +1402,7 @@ const MED_LIBRARY = [
 
   // Emergência / cardio / SNC
   {name:"Adrenalina 1mg/mL (1:1000)", dose:"0,3-0,5mg", via:"IM", dil:"aplicar IM (vasto lateral da coxa), sem diluição — anafilaxia", principal:true},
-  {name:"Glicose 50% hipertônica", dose:"1-2 ampolas (20-40mL)", via:"EV", dil:"EV direto lento — hipoglicemia sintomática", principal:true},
+  {name:"Glicose 50% hipertônica", dose:"4 ampolas de 10mL (40mL)", via:"EV", dil:"EV direto lento — conferir protocolo local e acesso venoso", aprazo:"SN (se necessário)", obs:"HGT abaixo de 70", principal:true},
   {name:"Furosemida 10mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"EV direto lento (2-4min) ou diluir em 10mL SF 0,9%", principal:true},
   {name:"Diazepam 5mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"EV direto lento — não diluir (risco de precipitação)", principal:true},
   {name:"Midazolam 5mg/mL", dose:"1 ampola (3mL), titular", via:"EV", dil:"diluir em 10mL SF 0,9%, titular lentamente", principal:true},
@@ -1411,6 +1412,7 @@ const MED_LIBRARY = [
   // ==================== abaixo: lista de estoque da farmácia ====================
   // === ESTOQUE DA FARMÁCIA — ORAIS / TÓPICOS ===
   {name:"AAS 100mg", dose:"1 comprimido", via:"VO", dil:""},
+  {name:"Clopidogrel 75mg comprimido revestido", dose:"1 comprimido (75mg)", via:"VO", dil:"", aprazo:"1x ao dia"},
   {name:"Aciclovir 200mg", dose:"1 comprimido", via:"VO", dil:""},
   {name:"Aciclovir 50mg/g creme", dose:"aplicar na lesão (10g)", via:"Tópica", dil:""},
   {name:"Ácido Fólico 5mg", dose:"1 comprimido", via:"VO", dil:""},
@@ -1492,7 +1494,7 @@ const MED_LIBRARY = [
   {name:"Epinefrina 1mg/1mL (1:1000)", dose:"0,3-0,5mg", via:"IM", dil:"aplicar IM (vasto lateral da coxa), sem diluição — anafilaxia"},
   {name:"Enantato de Noretisterona 50mg/mL + Valerato de Estradiol 5mg/mL", dose:"1 ampola (1mL)", via:"IM", dil:""},
   {name:"Furosemida 20mg/2mL", dose:"1 ampola (2mL)", via:"EV", dil:"EV direto lento (2-4min) ou diluir em 10mL SF 0,9%"},
-  {name:"Glicose 50% 10mL", dose:"1-2 ampolas (20-40mL)", via:"EV", dil:"EV direto lento — hipoglicemia sintomática"},
+  {name:"Glicose 50% 10mL", dose:"4 ampolas de 10mL (40mL)", via:"EV", dil:"EV direto lento — conferir protocolo local e acesso venoso", aprazo:"SN (se necessário)", obs:"HGT abaixo de 70"},
   {name:"Gluconato de Cálcio 10% 10mL", dose:"conforme prescrição", via:"EV", dil:""},
   {name:"Hidralazina 20mg/mL", dose:"conforme prescrição", via:"EV/IM", dil:""},
   {name:"Nitroprusseto de Sódio 25mg/mL", dose:"conforme protocolo (mcg/kg/min, proteger da luz)", via:"EV", dil:""},
@@ -1663,7 +1665,7 @@ function renderLib(){
     chip.className = 'med-chip';
     chip.textContent = '+ ' + m.name;
     chip.title = [m.dose, m.via].filter(Boolean).join(' — ');
-    chip.onclick = ()=> addMed(m.name, m.dose, m.via, m.dil||'');
+    chip.onclick = ()=> addMed(m.name, m.dose, m.via, m.dil||'', m.aprazo||'AGORA', m.obs||'');
     lib.appendChild(chip);
   });
   emptyMsg.style.display = filtered.length ? 'none' : 'block';
@@ -1700,8 +1702,8 @@ function viaOptionsFor(via){
   return opts;
 }
 
-function addMed(name, dose='', via='EV', dil=''){
-  meds.push({id:'m'+(medSeq++), name, dose, via: viaPrimaria(via), dil, useDil:false, aprazo:'AGORA', obs:'', ord: nextOrd()});
+function addMed(name, dose='', via='EV', dil='', aprazo='AGORA', obs=''){
+  meds.push({id:'m'+(medSeq++), name, dose, via: viaPrimaria(via), dil, useDil:false, aprazo, obs, ord: nextOrd()});
   renderMeds();
 }
 
@@ -2635,15 +2637,7 @@ function gerarImpressao(modo='impressao'){
     if(!seguir) return;
   }
 
-  if(temCeftriaxona()){
-    alert('Ceftriaxona prescrita: a FICHA GIF (Protocolo Gerenciado de Infecções) '
-      + 'será impressa junto, em 2 páginas no formato retrato.\n\n'
-      + 'Ela precisa ser preenchida pela enfermagem, médico e farmácia.');
-  }
-  if(temSolicitacaoECG()){
-    alert('ECG solicitado: o FORMULÁRIO DE TELECARDIO será impresso automaticamente '
-      + 'em 2 páginas A4 no formato retrato, em um trabalho de impressão separado.');
-  }
+  // Formulários complementares são abertos automaticamente, sem avisos modais que retirem a ativação do clique.
   abrirImpressaoNovaAba(modo);
 }
 
@@ -2655,8 +2649,35 @@ function abrirImpressaoNovaAba(modo='impressao'){
   // A prescrição é paisagem e a ficha GIF é retrato. O Chrome não imprime
   // orientações diferentes de forma confiável no mesmo trabalho, então cada
   // uma vai para a sua própria aba/trabalho de impressão.
+  // Abas criadas SINCRONAMENTE no clique: pop-up dentro de setTimeout é bloqueado em muitos navegadores.
+  const incluirGIF=temCeftriaxona();
+  const incluirECG=temSolicitacaoECG();
+  const abaPrescricao=window.open('', '_blank');
+  const abaGIF=incluirGIF ? window.open('', '_blank') : null;
+  const abaECG=incluirECG ? window.open('', '_blank') : null;
+
+  // A ficha GIF antiga continua obrigatória e pode ser reimpressa pela
+  // própria aba da prescrição, caso o navegador suprima o segundo diálogo.
+  let gifPreparada=false;
+  const cfgGIF={
+    ids:['gifSheet1','gifSheet2'],
+    orientacao:'portrait',
+    titulo:'Ficha GIF — Protocolo Gerenciado de Infecções (formulário antigo)',
+    aviso:'FICHA GIF ORIGINAL — 2 páginas A4 retrato. Este documento é obrigatório junto com o cartão de controle de dose da ceftriaxona.'
+  };
+  window.reimprimirFichaGIF=function(){
+    if(!incluirGIF)return;
+    if(abaGIF && !abaGIF.closed && gifPreparada){
+      abaGIF.focus();
+      abaGIF.print();
+    }else{
+      abrirAbaDeImpressao(cfgGIF);
+    }
+  };
+
   abrirAbaDeImpressao({
-    ids: ['printSheet', 'printSheet2', 'printSheet3'],
+    janela: abaPrescricao,
+    ids: ['printSheet', 'printSheet2', 'printSheet3'].concat(temCeftriaxona() ? ['cefCardSheet'] : []),
     orientacao: 'landscape',
     titulo: 'Prescrição Médica',
     aviso: exportarPDF
@@ -2666,28 +2687,28 @@ function abrirImpressaoNovaAba(modo='impressao'){
       : 'Marque <b>"Imprimir nos dois lados" / "Frente e verso"</b> (em <i>Mais configurações</i>), '
         + 'de preferência com virada pela <b>borda curta</b>. A ficha de observação é a 2ª página '
         + 'e deve sair no verso da prescrição.<br>Para gerar um arquivo, escolha <b>"Salvar como PDF"</b> em Destino.'
+         + (incluirGIF
+           ? '<p><b>CEFTRIAXONA — IMPRIMIR TODOS OS DOCUMENTOS:</b> este trabalho inclui a prescrição (2 páginas) + o cartão novo de controle de dose (1 página, paisagem). '
+             + 'A FICHA GIF ANTIGA (2 páginas, retrato) abre em outra aba. <b>Imprima também essa ficha.</b></p>'
+             + '<button type="button" onclick="window.opener?.reimprimirFichaGIF()">🖨️ Reimprimir ficha GIF antiga (2 páginas)</button>'
+           : '')
   });
 
-  if(temCeftriaxona()){
+  if(incluirGIF){
     // pequena espera para o navegador não descartar a segunda aba
     setTimeout(function(){
-      abrirAbaDeImpressao({
-        ids: ['gifSheet1', 'gifSheet2'],
-        orientacao: 'portrait',
-        titulo: 'Ficha GIF — Protocolo Gerenciado de Infecções',
-        aviso: 'Esta é a <b>FICHA GIF</b>, impressa em <b>A4 retrato</b> (2 páginas), separada da '
-             + 'prescrição porque a orientação do papel é diferente.<br>'
-             + 'Deve ser preenchida pela enfermagem, médico e farmácia.'
-      });
+      abrirAbaDeImpressao({...cfgGIF,janela:abaGIF});
+      gifPreparada=true;
     }, 700);
   }
 
-  if(temSolicitacaoECG()){
+  if(incluirECG){
     // se também houver ceftriaxona, aguarda a abertura da ficha GIF;
     // caso contrário, abre logo após o trabalho de impressão da prescrição.
-    const esperaECG = temCeftriaxona() ? 1400 : 700;
+    const esperaECG = incluirGIF ? 1400 : 700;
     setTimeout(function(){
       abrirAbaDeImpressao({
+        janela: abaECG,
         ids: ['ecgFormSheet1', 'ecgFormSheet2'],
         orientacao: 'portrait',
         titulo: 'Solicitação de Eletrocardiograma / ECG',
@@ -2785,7 +2806,7 @@ ${folhas}
 </body>
 </html>`;
 
-  const aba = window.open('', '_blank');
+  const aba = Object.prototype.hasOwnProperty.call(cfg, 'janela') ? cfg.janela : window.open('', '_blank');
   if(!aba){
     alert('O navegador bloqueou uma das abas de impressão.\n\nLibere os pop-ups para este arquivo e tente novamente.');
     return;
@@ -2977,7 +2998,7 @@ window.addEventListener('beforeprint', function(){
       <button class="desk-top-btn" type="button" onclick="toggleDarkMode()">◐ Tema</button>
       <button class="desk-top-btn" type="button" onclick="novaPrescricao()">Nova prescrição</button>
       <button class="desk-top-btn danger" type="button" onclick="limparTudo()">🗑 Limpar tudo</button>
-      <button class="desk-top-btn" type="button" onclick="abrirRevisaoPDF()">⬇ Salvar PDF</button>
+      <button class="desk-top-btn" type="button" onclick="abrirRevisaoWord()">⬇ Salvar Word</button>
       <button class="desk-top-btn primary" type="button" onclick="abrirRevisaoImpressao()">Revisar / imprimir</button>`;
     top.appendChild(box);
   }
@@ -3558,6 +3579,10 @@ window.addEventListener('beforeprint', function(){
     const pdfHint=q('reviewExportHint');
     pdfHint.style.display=exportarPDF?'block':'none';
     if(exportarPDF) pdfHint.textContent='Na janela de impressão, escolha Salvar como PDF. No iPhone ou iPad, abra a prévia e use Compartilhar → Salvar em Arquivos. A prescrição e a ficha de observação serão incluídas no arquivo; formulários complementares podem abrir separadamente.';
+    if(!exportarPDF && temCeftriaxona()){
+      pdfHint.style.display='block';
+      pdfHint.textContent='CEFTRIAXONA: imprimir 1) prescrição + cartão novo (3 folhas paisagem) e 2) ficha GIF antiga (2 folhas retrato). Os dois trabalhos abrem automaticamente; se a ficha GIF não aparecer, utilize o botão de reimpressão na aba da prescrição.';
+    }
     q('reviewPrintBtn').onclick=()=>{
       fecharRevisao();
       saveDraft();
@@ -3789,6 +3814,9 @@ window.addEventListener('beforeprint', function(){
   initialize();
 })();
 </script>
+<script src="./bic-presets.js"></script>
+<script src="./ceftriaxona-card.js"></script>
+<script src="./prescription-word.js"></script>
 
 </body>
 </html>
