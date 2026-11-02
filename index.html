@@ -2637,16 +2637,7 @@ function gerarImpressao(modo='impressao'){
     if(!seguir) return;
   }
 
-  if(temCeftriaxona()){
-    alert('Ceftriaxona prescrita: a FICHA GIF (Protocolo Gerenciado de Infecções) '
-      + 'será impressa junto, em 2 páginas no formato retrato.\n\n'
-      + 'O CARTÃO DE CONTROLE DE DOSE (duas vias) acompanhará a prescrição em A4 paisagem.\n\n'
-      + 'A ficha GIF precisa ser preenchida pela enfermagem, médico e farmácia.');
-  }
-  if(temSolicitacaoECG()){
-    alert('ECG solicitado: o FORMULÁRIO DE TELECARDIO será impresso automaticamente '
-      + 'em 2 páginas A4 no formato retrato, em um trabalho de impressão separado.');
-  }
+  // Formulários complementares são abertos automaticamente, sem avisos modais que retirem a ativação do clique.
   abrirImpressaoNovaAba(modo);
 }
 
@@ -2658,7 +2649,14 @@ function abrirImpressaoNovaAba(modo='impressao'){
   // A prescrição é paisagem e a ficha GIF é retrato. O Chrome não imprime
   // orientações diferentes de forma confiável no mesmo trabalho, então cada
   // uma vai para a sua própria aba/trabalho de impressão.
+  // Abas criadas SINCRONAMENTE no clique: pop-up dentro de setTimeout é bloqueado em muitos navegadores.
+  const incluirGIF=temCeftriaxona();
+  const incluirECG=temSolicitacaoECG();
+  const abaPrescricao=window.open('', '_blank');
+  const abaGIF=incluirGIF ? window.open('', '_blank') : null;
+  const abaECG=incluirECG ? window.open('', '_blank') : null;
   abrirAbaDeImpressao({
+    janela: abaPrescricao,
     ids: ['printSheet', 'printSheet2', 'printSheet3'].concat(temCeftriaxona() ? ['cefCardSheet'] : []),
     orientacao: 'landscape',
     titulo: 'Prescrição Médica',
@@ -2671,10 +2669,11 @@ function abrirImpressaoNovaAba(modo='impressao'){
         + 'e deve sair no verso da prescrição.<br>Para gerar um arquivo, escolha <b>"Salvar como PDF"</b> em Destino.'
   });
 
-  if(temCeftriaxona()){
+  if(incluirGIF){
     // pequena espera para o navegador não descartar a segunda aba
     setTimeout(function(){
       abrirAbaDeImpressao({
+        janela: abaGIF,
         ids: ['gifSheet1', 'gifSheet2'],
         orientacao: 'portrait',
         titulo: 'Ficha GIF — Protocolo Gerenciado de Infecções',
@@ -2685,12 +2684,13 @@ function abrirImpressaoNovaAba(modo='impressao'){
     }, 700);
   }
 
-  if(temSolicitacaoECG()){
+  if(incluirECG){
     // se também houver ceftriaxona, aguarda a abertura da ficha GIF;
     // caso contrário, abre logo após o trabalho de impressão da prescrição.
-    const esperaECG = temCeftriaxona() ? 1400 : 700;
+    const esperaECG = incluirGIF ? 1400 : 700;
     setTimeout(function(){
       abrirAbaDeImpressao({
+        janela: abaECG,
         ids: ['ecgFormSheet1', 'ecgFormSheet2'],
         orientacao: 'portrait',
         titulo: 'Solicitação de Eletrocardiograma / ECG',
@@ -2788,7 +2788,7 @@ ${folhas}
 </body>
 </html>`;
 
-  const aba = window.open('', '_blank');
+  const aba = Object.prototype.hasOwnProperty.call(cfg, 'janela') ? cfg.janela : window.open('', '_blank');
   if(!aba){
     alert('O navegador bloqueou uma das abas de impressão.\n\nLibere os pop-ups para este arquivo e tente novamente.');
     return;
