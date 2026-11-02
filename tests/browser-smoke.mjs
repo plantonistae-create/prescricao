@@ -13,16 +13,7 @@ const page=await context.newPage(),errors=[];
 page.on('pageerror',e=>errors.push('app: '+e.message));
 await page.goto(pathToFileURL(resolve('index.html')).href,{waitUntil:'domcontentloaded'});
 await page.waitForTimeout(800);
-console.log('DIAGNÓSTICO DOM', JSON.stringify(await page.evaluate(()=>({
-  url:location.href,
-  card:document.querySelector('#bicCard')?.outerHTML?.slice(0,350)??null,
-  medCards:[...document.querySelectorAll('.wrap .card h2')].map(x=>x.textContent),
-  scripts:[...document.scripts].map(s=>s.src).filter(Boolean),
-  ready:document.readyState
-}))));
-console.log('ERROS AO INICIAR',errors);
-await page.screenshot({path:resolve(dir,'diagnostico-inicial.png'),fullPage:false});
-await page.locator('#bicMedicamento').waitFor({state:'attached',timeout:8000});
+await page.locator('#bicMedicamento').waitFor({state:'visible',timeout:8000});
 await page.locator('#pName').fill('PACIENTE TESTE QA');
 await page.locator('#pAge').fill('44 anos');
 await page.locator('#pDoc').fill('000.000.000-00');
@@ -70,6 +61,19 @@ await clean.goto(pathToFileURL(resolve('index.html')).href,{waitUntil:'domconten
 await clean.locator('#medLib').waitFor();
 assert.equal(await clean.evaluate(()=>temCeftriaxona()),false);
 assert.equal(await page.evaluate(()=>temCeftriaxona()),true);
+await clean.locator('#medSearch').fill('Ceftriaxona 2g');
+await clean.locator('#medLib .med-chip').filter({hasText:'Ceftriaxona 2g'}).first().click();
+assert.equal(await clean.evaluate(()=>temCeftriaxona()),true,'ceftriaxona 2g dispara cartão');
+await clean.locator('#medSearch').fill('Glicose 50%');
+await clean.locator('#medLib .med-chip').filter({hasText:'Glicose 50% hipertônica'}).first().click();
+const glicose=await clean.evaluate(()=>meds.find(m=>m.name==='Glicose 50% hipertônica'));
+assert.match(glicose.dose,/4 ampolas de 10mL/);
+assert.equal(glicose.aprazo,'SN (se necessário)');
+assert.equal(glicose.obs,'HGT abaixo de 70');
+for(const termo of ['Clopidogrel 75mg','Paracetamol 500mg','Brometo de ipratrópio 0,25mg/mL']){
+  await clean.locator('#medSearch').fill(termo);
+  assert.ok((await clean.locator('#medLib .med-chip').count())>0,'Encontrou '+termo);
+}
 assert.deepEqual(errors,[]);
 await browser.close();
 console.log('Navegador QA: BIC, Word, ceftriaxona, GIF, PDF paisagem e ausência de erros JS aprovados.');
