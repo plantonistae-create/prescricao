@@ -54,7 +54,8 @@
     itens.forEach((it,i)=>itensLinhas.push([String(i+1),it.texto||'',it.obs||'']));
     while(itensLinhas.length<22)itensLinhas.push(['','','']);
     body+=table(itensLinhas,[550,11950,2900],{minHeight:180});
-    body+=paragraph('Assinatura e carimbo do(a) médico(a): ___________________________________________________',{after:120});
+    // A assinatura do médico pertence ao rodapé EXCLUSIVO da página 1.
+    // Nunca incluí-la no fluxo da tabela: o Word pode movê-la para a página seguinte.
     body+=paragraph('FICHA DO PACIENTE NO LEITO DE OBSERVAÇÃO',{bold:true,size:24,center:true,page:true,after:140});
     body+=paragraph('Paciente: '+paciente+'    Idade: '+idade+'    CPF/CNS: '+documento+'    Data: '+data,{size:18,after:100});
     body+=paragraph('SINAIS VITAIS / EVOLUÇÃO',{bold:true,size:19,after:70});
@@ -66,10 +67,21 @@
     for(let i=0;i<6;i++)enfermagem.push(['','','']);
     body+=table(enfermagem,[2400,10400,2600],{minHeight:275});
     body+=paragraph('Assinatura do(a) enfermeiro(a) responsável: _________________________________________________',{after:60});
-    body+='<w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/>'+
-      '<w:pgMar w:top="450" w:right="500" w:bottom="450" w:left="500" w:header="200" w:footer="200" w:gutter="0"/></w:sectPr>';
+    body+='<w:sectPr><w:footerReference w:type="first" r:id="rId2"/>'+
+      '<w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/>'+
+      '<w:pgMar w:top="450" w:right="500" w:bottom="780" w:left="500" w:header="200" w:footer="300" w:gutter="0"/>'+
+      '<w:titlePg/></w:sectPr>';
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
-      '<w:document xmlns:w="'+ns+'"><w:body>'+body+'</w:body></w:document>';
+      '<w:document xmlns:w="'+ns+'" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><w:body>'+body+'</w:body></w:document>';
+  }
+  function assinaturaMedicaPrimeiraPagina(){
+    // O rodapé 'first' é exibido só na folha da prescrição; o verso fica sem assinatura médica.
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+      '<w:ftr xmlns:w="'+ns+'"><w:p><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr>'+
+      '<w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>'+
+      '<w:sz w:val="17"/></w:rPr>'+
+      '<w:t xml:space="preserve">Assinatura e carimbo do(a) médico(a): ___________________________________________________</w:t>'+
+      '</w:r></w:p></w:ftr>';
   }
   function crc32(bytes){
     let c=0xFFFFFFFF;
@@ -111,14 +123,20 @@
       '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
       '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
       '<Default Extension="xml" ContentType="application/xml"/>'+
-      '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>';
+      '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>'+ 
+      '<Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/></Types>';
     const rels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
       '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
       '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
+    const docRels='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+      '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/></Relationships>';
     const arquivo=packageDocx([
       {name:'[Content_Types].xml',content:contentTypes},
       {name:'_rels/.rels',content:rels},
-      {name:'word/document.xml',content:wordXml()}
+      {name:'word/document.xml',content:wordXml()},
+      {name:'word/_rels/document.xml.rels',content:docRels},
+      {name:'word/footer1.xml',content:assinaturaMedicaPrimeiraPagina()}
     ]);
     const paciente=(document.getElementById('pName')?.value||'prescricao').trim()
       .normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9 _-]/g,'')
