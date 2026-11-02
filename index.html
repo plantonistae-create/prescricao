@@ -1012,7 +1012,7 @@
     <div class="footer-actions">
       <button class="btn btn-ghost" onclick="limparItens()">Limpar itens</button>
       <button class="btn btn-ghost" onclick="limparTudo()">Limpar tudo</button>
-      <button class="btn btn-ghost" type="button" onclick="abrirRevisaoPDF()">⬇ Salvar PDF</button>
+      <button class="btn btn-ghost" type="button" onclick="abrirRevisaoWord()">⬇ Salvar Word</button>
       <button class="btn btn-teal" onclick="abrirRevisaoImpressao()">Revisar e imprimir →</button>
     </div>
 
@@ -2640,7 +2640,7 @@ function gerarImpressao(modo='impressao'){
   if(temCeftriaxona()){
     alert('Ceftriaxona prescrita: a FICHA GIF (Protocolo Gerenciado de Infecções) '
       + 'será impressa junto, em 2 páginas no formato retrato.\n\n'
-      + 'Ela precisa ser preenchida pela enfermagem, médico e farmácia.');
+      + 'O CARTÃO DE CONTROLE DE DOSE (duas vias) acompanhará a prescrição em A4 paisagem.\n\n'\n      + 'A ficha GIF precisa ser preenchida pela enfermagem, médico e farmácia.');
   }
   if(temSolicitacaoECG()){
     alert('ECG solicitado: o FORMULÁRIO DE TELECARDIO será impresso automaticamente '
@@ -2658,7 +2658,7 @@ function abrirImpressaoNovaAba(modo='impressao'){
   // orientações diferentes de forma confiável no mesmo trabalho, então cada
   // uma vai para a sua própria aba/trabalho de impressão.
   abrirAbaDeImpressao({
-    ids: ['printSheet', 'printSheet2', 'printSheet3'],
+    ids: ['printSheet', 'printSheet2', 'printSheet3'].concat(temCeftriaxona() ? ['cefCardSheet'] : []),
     orientacao: 'landscape',
     titulo: 'Prescrição Médica',
     aviso: exportarPDF
@@ -2979,7 +2979,7 @@ window.addEventListener('beforeprint', function(){
       <button class="desk-top-btn" type="button" onclick="toggleDarkMode()">◐ Tema</button>
       <button class="desk-top-btn" type="button" onclick="novaPrescricao()">Nova prescrição</button>
       <button class="desk-top-btn danger" type="button" onclick="limparTudo()">🗑 Limpar tudo</button>
-      <button class="desk-top-btn" type="button" onclick="abrirRevisaoPDF()">⬇ Salvar PDF</button>
+      <button class="desk-top-btn" type="button" onclick="abrirRevisaoWord()">⬇ Salvar Word</button>
       <button class="desk-top-btn primary" type="button" onclick="abrirRevisaoImpressao()">Revisar / imprimir</button>`;
     top.appendChild(box);
   }
@@ -3791,6 +3791,9 @@ window.addEventListener('beforeprint', function(){
   initialize();
 })();
 </script>
+<script src="./bic-presets.js"></script>
+<script src="./ceftriaxona-card.js"></script>
+<script src="./prescription-word.js"></script>
 
 </body>
 </html>
