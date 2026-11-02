@@ -109,7 +109,16 @@ test('exportação .docx tem partes OOXML válidas e preserva conteúdo especial
     off+=30+n+extra+size;
   }
   assert.equal(view.getUint32(off,true),0x02014b50);
-  assert.deepEqual(Object.keys(parts).sort(),['_rels/.rels','[Content_Types].xml','word/document.xml'].sort());
+  assert.deepEqual(Object.keys(parts).sort(),[
+    '_rels/.rels','[Content_Types].xml','word/document.xml',
+    'word/_rels/document.xml.rels','word/footer1.xml'
+  ].sort());
+  assert.match(parts['word/footer1.xml'],/Assinatura e carimbo do\(a\) médico\(a\)/);
+  assert.doesNotMatch(parts['word/document.xml'],/Assinatura e carimbo do\(a\) médico\(a\)/);
+  assert.match(parts['word/document.xml'],/w:titlePg/);
+  assert.match(parts['word/document.xml'],/footerReference w:type="first"/);
+  assert.match(parts['word/_rels/document.xml.rels'],/Target="footer1.xml"/);
+  assert.match(parts['word/document.xml'],/SINAIS VITAIS/);
   assert.match(parts['word/document.xml'],/Midazolam BIC/);
   assert.match(parts['word/document.xml'],/A&lt;123/);
   assert.match(parts['word/document.xml'],/Teste &amp; Segurança/);
