@@ -30,11 +30,13 @@ await page.locator('#bicMedicamento').selectOption('midazolam');
 await page.locator('#bicConcentracao').selectOption('2');
 await page.locator('#bicVelocidade').fill('1,5');
 await page.locator('#bicAdicionar').click();
-assert.match(await page.locator('#medList').innerText(),/Midazolam/);
-assert.match(await page.locator('#medList').innerText(),/2 mg\/mL/);
+const bicGerada=await page.evaluate(()=>meds.find(m=>/Midazolam — BIC/.test(m.name)));
+assert.ok(bicGerada,'BIC foi adicionada ao estado do formulário');
+assert.match(bicGerada.dose,/2 mg\/mL/);
+assert.match(bicGerada.aprazoTexto,/1,5 mL\/h/);
 await page.locator('#medSearch').fill('Ceftriaxona');
 await page.locator('#medLib .med-chip').filter({hasText:'Ceftriaxona 1g'}).first().click();
-assert.match(await page.locator('#medList').innerText(),/Ceftriaxona 1g/);
+assert.ok(await page.evaluate(()=>meds.some(m=>m.name==='Ceftriaxona 1g')),'ceftriaxona adicionada ao estado');
 await page.screenshot({path:resolve(dir,'prescricao-1g-bic.png'),fullPage:false});
 
 // Word é realmente um download e não uma caixa de impressão renomeada.
