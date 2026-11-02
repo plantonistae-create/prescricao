@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import {createHash} from 'node:crypto';
 
 const read = file => fs.readFileSync(new URL('../'+file,import.meta.url),'utf8');
 const html = read('index.html');
@@ -118,9 +119,16 @@ test('exportação .docx tem partes OOXML válidas e preserva conteúdo especial
 test('ceftriaxona anexa cartão extra sem remover a ficha GIF',()=>{
   assert.match(html,/ids:\s*\['printSheet',\s*'printSheet2',\s*'printSheet3'\]\.concat\(temCeftriaxona\(\)\s*\?\s*\['cefCardSheet'\]/);
   assert.match(html,/ids:\s*\['gifSheet1',\s*'gifSheet2'\]/);
-  assert.match(cef,/CARTÃO CONTROLE DE DOSE/);
-  assert.match(cef,/class="cef-dual"/);
-  assert.match(cef,/function\(\)\{/);
+  assert.match(cef,/ceftriaxona_cartao_original\.pdf/);
+  assert.match(cef,/ceftriaxona_pagina_original\.png/);
+  assert.match(cef,/cef-original-page/);
+  assert.ok(!cef.includes('function metade('),'Não reconstruir a ficha original');
+  const raw=fs.readFileSync(new URL('../assets/ceftriaxona_cartao_original.pdf',import.meta.url));
+  assert.equal(raw.length,251917);
+  assert.equal(createHash('sha256').update(raw).digest('hex'),'32a47c58e48daf510088d76ebf46a3d49a8c02afb45af67d4fb6c570d5645082');
+  const image=fs.readFileSync(new URL('../assets/ceftriaxona_pagina_original.png',import.meta.url));
+  assert.equal(image.length,74618);
+  assert.equal(createHash('sha256').update(image).digest('hex'),'a81fd4ef45559e3e06367eeb8dea5f0cc4d2ec5582771fb03eecf1e40abcd46d');
 });
 
 
