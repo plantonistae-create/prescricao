@@ -2655,10 +2655,14 @@ function abrirImpressaoNovaAba(modo='impressao'){
   const abaPrescricao=window.open('', '_blank');
   const abaGIF=incluirGIF ? window.open('', '_blank') : null;
   const abaECG=incluirECG ? window.open('', '_blank') : null;
+  // Todas as abas são abertas e preenchidas DURANTE o clique.
+  // Antes, a aba ECG só recebia conteúdo após 700/1400ms: a primeira
+  // chamada a window.print() podia bloquear o timer e deixá-la em branco.
 
   // A ficha GIF antiga continua obrigatória e pode ser reimpressa pela
   // própria aba da prescrição, caso o navegador suprima o segundo diálogo.
   let gifPreparada=false;
+  let ecgPreparado=false;
   const cfgGIF={
     ids:['gifSheet1','gifSheet2'],
     orientacao:'portrait',
@@ -2672,6 +2676,22 @@ function abrirImpressaoNovaAba(modo='impressao'){
       abaGIF.print();
     }else{
       abrirAbaDeImpressao(cfgGIF);
+    }
+  };
+  const cfgECG={
+    ids:['ecgFormSheet1','ecgFormSheet2'],
+    orientacao:'portrait',
+    titulo:'Solicitação de Eletrocardiograma / ECG',
+    aviso:'Este é o <b>FORMULÁRIO DE TELECARDIO / ECG</b>, impresso porque <b>SOLICITO ECG</b> foi selecionado. São <b>2 páginas A4 em retrato</b>.'
+  };
+  window.reimprimirFormularioECG=function(){
+    if(!incluirECG)return;
+    if(abaECG && !abaECG.closed && ecgPreparado){
+      abaECG.focus();
+      abaECG.print();
+    }else{
+      // Executado diretamente no clique de reimpressão, caso o pop-up inicial tenha sido bloqueado.
+      abrirAbaDeImpressao(cfgECG);
     }
   };
 
@@ -2692,31 +2712,21 @@ function abrirImpressaoNovaAba(modo='impressao'){
              + 'A FICHA GIF ANTIGA (2 páginas, retrato) abre em outra aba. <b>Imprima também essa ficha.</b></p>'
              + '<button type="button" onclick="window.opener?.reimprimirFichaGIF()">🖨️ Reimprimir ficha GIF antiga (2 páginas)</button>'
            : '')
+         + (incluirECG
+           ? '<p><b>ECG — DOCUMENTO COMPLEMENTAR:</b> o formulário Telecardio deve aparecer em outra aba, com <b>2 páginas A4 retrato</b>.</p>'
+             + '<button type="button" onclick="window.opener?.reimprimirFormularioECG()">🖨️ Abrir/reimprimir formulário ECG</button>'
+           : '')
   });
 
+  // Preparar e renderizar os documentos *antes* de qualquer diálogo de impressão.
+  // Isso impede a aba em branco quando o primeiro diálogo bloqueia timers.
   if(incluirGIF){
-    // pequena espera para o navegador não descartar a segunda aba
-    setTimeout(function(){
-      abrirAbaDeImpressao({...cfgGIF,janela:abaGIF});
-      gifPreparada=true;
-    }, 700);
+    abrirAbaDeImpressao({...cfgGIF,janela:abaGIF});
+    gifPreparada=!!(abaGIF && !abaGIF.closed);
   }
-
   if(incluirECG){
-    // se também houver ceftriaxona, aguarda a abertura da ficha GIF;
-    // caso contrário, abre logo após o trabalho de impressão da prescrição.
-    const esperaECG = incluirGIF ? 1400 : 700;
-    setTimeout(function(){
-      abrirAbaDeImpressao({
-        janela: abaECG,
-        ids: ['ecgFormSheet1', 'ecgFormSheet2'],
-        orientacao: 'portrait',
-        titulo: 'Solicitação de Eletrocardiograma / ECG',
-        aviso: 'Este é o <b>FORMULÁRIO DE TELECARDIO / ECG</b>, impresso automaticamente porque '
-             + '<b>SOLICITO ECG</b> foi selecionado na prescrição.<br>'
-             + 'São <b>2 páginas A4 em formato retrato</b>.'
-      });
-    }, esperaECG);
+    abrirAbaDeImpressao({...cfgECG,janela:abaECG});
+    ecgPreparado=!!(abaECG && !abaECG.closed);
   }
 }
 

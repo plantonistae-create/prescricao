@@ -62,7 +62,15 @@ jobs:
           test "$(pdfinfo artifacts/qa/ficha-gif.pdf | awk '/^Pages:/ {print $2}')" = 2 || { echo "::error::Ficha GIF antiga precisa ter 2 páginas"; exit 1; }
           pdftoppm -png -f 1 -l 2 -r 105 artifacts/qa/word-render/prescricao-28-itens.pdf artifacts/qa/word-render/word28
           pdftoppm -png -f 1 -l 2 -r 105 artifacts/qa/word-render/prescricao-qa.pdf artifacts/qa/word-render/wordPadrao
-          echo "Pacote ceftriaxona: prescrição e cartão 3 páginas + GIF antiga 2 páginas. Word: 2 páginas."
+          for ecg in artifacts/qa/formulario-ecg-isolado.pdf artifacts/qa/formulario-ecg-com-ceftriaxona.pdf; do
+            test -s "$ecg" || { echo "::error::ECG não gerado: $ecg"; exit 1; }
+            pages="$(pdfinfo "$ecg" | awk '/^Pages:/ {print $2}')"
+            images="$(pdfimages -list "$ecg" | awk 'NR>2{n++} END{print n+0}')"
+            echo "$ecg: $pages páginas, $images imagens renderizadas"
+            test "$pages" -eq 2 || { echo "::error::ECG deveria ter 2 páginas: $ecg"; exit 1; }
+            test "$images" -ge 2 || { echo "::error::ECG vazio ou sem formulários: $ecg"; exit 1; }
+          done
+          echo "Pacote ceftriaxona: prescrição e cartão 3 páginas + GIF antiga 2 páginas. Word: 2 páginas. ECG: 2 páginas com imagens."
       - name: Guardar evidências de navegação e impressão
         if: always()
         uses: actions/upload-artifact@v4

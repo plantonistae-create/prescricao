@@ -141,7 +141,7 @@ test('ceftriaxona anexa cartão extra sem remover a ficha GIF',()=>{
 });
 
 
-test('impressão abre as janelas de ceftriaxona/ECG no clique, antes dos atrasos',()=>{
+test('impressão preenche todas as janelas de ceftriaxona/ECG no próprio clique, sem timers',()=>{
   const m=html.match(/function abrirImpressaoNovaAba\(modo='impressao'\)\{[\s\S]*?\n\}\n\nfunction abrirAbaDeImpressao\(cfg\)\{/);
   assert.ok(m,'a função de impressão existe');
   const fn=m[0].slice(0,m[0].lastIndexOf('\n\nfunction abrirAbaDeImpressao'));
@@ -160,6 +160,6 @@ test('impressão abre as janelas de ceftriaxona/ECG no clique, antes dos atrasos
     assert.equal(jobs.some(x=>x.ids.includes('gifSheet1')),gif);
     assert.equal(jobs.some(x=>x.ids.includes('ecgFormSheet1')),ecg);
     assert.ok(jobs.every((job,i)=>job.janela===abertas[i]));
-    assert.equal(timers,janelas-1);
+    assert.equal(timers,0,'janelas não podem depender de timers, pois o diálogo de impressão bloqueia a execução');
   }
 });
