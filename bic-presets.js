@@ -57,7 +57,7 @@
   }
   function iniciar(){
     const destino=[...document.querySelectorAll('.wrap .card')].find(
-      el=>el.querySelector('h2')?.textContent.trim()==='Medicações Isoladas'
+      el=>el.querySelector('h2')?.textContent.trim().startsWith('Medicações Isoladas')
     );
     if(!destino || document.getElementById('bicCard'))return;
     const card=document.createElement('div');
