@@ -17,7 +17,7 @@
   }
   function cell(s,bold=false,width=1500){
     return '<w:tc><w:tcPr><w:tcW w:w="'+width+'" w:type="dxa"/><w:vAlign w:val="center"/></w:tcPr>'+
-      paragraph(s,{bold,size:bold?17:16,after:0})+'</w:tc>';
+      paragraph(s,{bold,size:bold?16:15,after:0})+'</w:tc>';
   }
   // A4 paisagem: área útil 15.838 twips, grade de 15.400 twips para não cortar.
   function table(rows,widths,{minHeight=0}={}){
@@ -32,8 +32,8 @@
       '<w:tblBorders><w:top w:val="single" w:sz="4"/><w:left w:val="single" w:sz="4"/>'+
       '<w:bottom w:val="single" w:sz="4"/><w:right w:val="single" w:sz="4"/>'+
       '<w:insideH w:val="single" w:sz="3"/><w:insideV w:val="single" w:sz="3"/></w:tblBorders>'+
-      '<w:tblCellMar><w:top w:w="55" w:type="dxa"/><w:bottom w:w="55" w:type="dxa"/>'+
-      '<w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr>';
+      '<w:tblCellMar><w:top w:w="24" w:type="dxa"/><w:bottom w:w="24" w:type="dxa"/>'+
+      '<w:left w:w="45" w:type="dxa"/><w:right w:w="45" w:type="dxa"/></w:tblCellMar></w:tblPr>';
     return '<w:tbl>'+pr+grid+rows.map((row,i)=>{
       const header=i===0?'<w:tblHeader w:val="true"/>':'';
       const height=minHeight?'<w:trHeight w:val="'+minHeight+'" w:hRule="atLeast"/>':'';
@@ -53,18 +53,18 @@
     const itensLinhas=[['Nº','PRESCRIÇÃO / CONDUTA','OBSERVAÇÕES']];
     itens.forEach((it,i)=>itensLinhas.push([String(i+1),it.texto||'',it.obs||'']));
     while(itensLinhas.length<22)itensLinhas.push(['','','']);
-    body+=table(itensLinhas,[700,10600,4100],{minHeight:255});
+    body+=table(itensLinhas,[550,11950,2900],{minHeight:180});
     body+=paragraph('Assinatura e carimbo do(a) médico(a): ___________________________________________________',{after:120});
     body+=paragraph('FICHA DO PACIENTE NO LEITO DE OBSERVAÇÃO',{bold:true,size:24,center:true,page:true,after:140});
     body+=paragraph('Paciente: '+paciente+'    Idade: '+idade+'    CPF/CNS: '+documento+'    Data: '+data,{size:18,after:100});
     body+=paragraph('SINAIS VITAIS / EVOLUÇÃO',{bold:true,size:19,after:70});
     const vitais=[['DATA / HORA','PA','FC','FR','SatO₂','TAX','HGT']];
     for(let i=0;i<13;i++)vitais.push(['','','','','','','']);
-    body+=table(vitais,[2500,1700,1700,1700,1700,1700,4400],{minHeight:260});
+    body+=table(vitais,[2500,1700,1700,1700,1700,1700,4400],{minHeight:220});
     body+=paragraph('RELATÓRIO / ANOTAÇÕES DE ENFERMAGEM',{bold:true,size:19,after:70});
     const enfermagem=[['DATA / HORA','EVOLUÇÃO / ANOTAÇÕES','RESPONSÁVEL']];
     for(let i=0;i<6;i++)enfermagem.push(['','','']);
-    body+=table(enfermagem,[2400,10400,2600],{minHeight:330});
+    body+=table(enfermagem,[2400,10400,2600],{minHeight:275});
     body+=paragraph('Assinatura do(a) enfermeiro(a) responsável: _________________________________________________',{after:60});
     body+='<w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/>'+
       '<w:pgMar w:top="450" w:right="500" w:bottom="450" w:left="500" w:header="200" w:footer="200" w:gutter="0"/></w:sectPr>';
