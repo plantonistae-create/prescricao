@@ -18,3 +18,18 @@ jobs:
           node-version: '22'
       - name: Testes BIC, DOCX e ceftriaxona
         run: node --test tests/*.test.mjs
+      - name: Preparar automação de navegador
+        run: npm install --no-save --ignore-scripts playwright-core@1.56.1
+      - name: Homologação Chromium real
+        run: |
+          CHROME_BIN="$(command -v google-chrome || command -v chromium || true)"
+          test -n "$CHROME_BIN"
+          export CHROME_BIN
+          node tests/browser-smoke.mjs
+      - name: Guardar evidências de navegação e impressão
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-prescricao-visual
+          path: artifacts/qa/
+          if-no-files-found: warn
