@@ -1374,6 +1374,7 @@ const MED_LIBRARY = [
   {name:"Diclofenaco 75mg/3mL", dose:"1 ampola", via:"IM", dil:"aplicar IM profundo, sem diluição; não usar EV", principal:true},
   {name:"Morfina 10mg/mL", dose:"1 ampola, diluir e titular conforme dor", via:"EV", dil:"diluir 1 ampola em 9mL AD (1mg/mL), administrar lento em bolus titulado", principal:true},
   {name:"Paracetamol 10mg/mL (frasco 100mL)", dose:"1 frasco (1000mg)", via:"EV", dil:"infundir puro em 15min (não diluir)", principal:true},
+  {name:"Paracetamol 500mg comprimido", dose:"1 comprimido (500mg)", via:"VO", dil:""},
 
   // Antieméticos / antiespasmódicos / gastro
   {name:"Bromoprida 5mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"EV direto lento ou diluir em 20mL SF 0,9%", principal:true},
@@ -1391,7 +1392,7 @@ const MED_LIBRARY = [
   // Respiratório
   {name:"Salbutamol 100mcg/jato (spray)", dose:"6-10 jatos", via:"Inalatória", dil:"usar com espaçador, 1 jato por vez", principal:true},
   {name:"Salbutamol solução para nebulização 5mg/mL", dose:"2,5-5mg (10-20 gotas)", via:"Inalatória", dil:"diluir em 3-5mL SF 0,9% para nebulização", principal:true},
-  {name:"Ipratrópio (Atrovent)", dose:"20-40 gotas", via:"Inalatória", dil:"diluir em 3-5mL SF 0,9%, associar ao salbutamol se prescrito", principal:true},
+  {name:"Brometo de ipratrópio 0,25mg/mL (solução para nebulização / Atrovent)", dose:"20-40 gotas", via:"Inalatória", dil:"diluir em 3-5mL SF 0,9%, associar ao salbutamol se prescrito", principal:true},
 
   // Insulinas
   {name:"Insulina Regular (humana) 100UI/mL", dose:"conforme HGT / prescrição", via:"SC", dil:"", principal:true},
@@ -1401,7 +1402,7 @@ const MED_LIBRARY = [
 
   // Emergência / cardio / SNC
   {name:"Adrenalina 1mg/mL (1:1000)", dose:"0,3-0,5mg", via:"IM", dil:"aplicar IM (vasto lateral da coxa), sem diluição — anafilaxia", principal:true},
-  {name:"Glicose 50% hipertônica", dose:"1-2 ampolas (20-40mL)", via:"EV", dil:"EV direto lento — hipoglicemia sintomática", principal:true},
+  {name:"Glicose 50% hipertônica", dose:"4 ampolas de 10mL (40mL)", via:"EV", dil:"EV direto lento — conferir protocolo local e acesso venoso", aprazo:"SN (se necessário)", obs:"Se HGT ou glicemia capilar < 70 mg/dL", principal:true},
   {name:"Furosemida 10mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"EV direto lento (2-4min) ou diluir em 10mL SF 0,9%", principal:true},
   {name:"Diazepam 5mg/mL", dose:"1 ampola (2mL)", via:"EV", dil:"EV direto lento — não diluir (risco de precipitação)", principal:true},
   {name:"Midazolam 5mg/mL", dose:"1 ampola (3mL), titular", via:"EV", dil:"diluir em 10mL SF 0,9%, titular lentamente", principal:true},
@@ -1411,6 +1412,7 @@ const MED_LIBRARY = [
   // ==================== abaixo: lista de estoque da farmácia ====================
   // === ESTOQUE DA FARMÁCIA — ORAIS / TÓPICOS ===
   {name:"AAS 100mg", dose:"1 comprimido", via:"VO", dil:""},
+  {name:"Clopidogrel 75mg comprimido revestido", dose:"1 comprimido (75mg)", via:"VO", dil:"", aprazo:"1x ao dia"},
   {name:"Aciclovir 200mg", dose:"1 comprimido", via:"VO", dil:""},
   {name:"Aciclovir 50mg/g creme", dose:"aplicar na lesão (10g)", via:"Tópica", dil:""},
   {name:"Ácido Fólico 5mg", dose:"1 comprimido", via:"VO", dil:""},
@@ -1492,7 +1494,7 @@ const MED_LIBRARY = [
   {name:"Epinefrina 1mg/1mL (1:1000)", dose:"0,3-0,5mg", via:"IM", dil:"aplicar IM (vasto lateral da coxa), sem diluição — anafilaxia"},
   {name:"Enantato de Noretisterona 50mg/mL + Valerato de Estradiol 5mg/mL", dose:"1 ampola (1mL)", via:"IM", dil:""},
   {name:"Furosemida 20mg/2mL", dose:"1 ampola (2mL)", via:"EV", dil:"EV direto lento (2-4min) ou diluir em 10mL SF 0,9%"},
-  {name:"Glicose 50% 10mL", dose:"1-2 ampolas (20-40mL)", via:"EV", dil:"EV direto lento — hipoglicemia sintomática"},
+  {name:"Glicose 50% 10mL", dose:"4 ampolas de 10mL (40mL)", via:"EV", dil:"EV direto lento — conferir protocolo local e acesso venoso", aprazo:"SN (se necessário)", obs:"Se HGT ou glicemia capilar < 70 mg/dL"},
   {name:"Gluconato de Cálcio 10% 10mL", dose:"conforme prescrição", via:"EV", dil:""},
   {name:"Hidralazina 20mg/mL", dose:"conforme prescrição", via:"EV/IM", dil:""},
   {name:"Nitroprusseto de Sódio 25mg/mL", dose:"conforme protocolo (mcg/kg/min, proteger da luz)", via:"EV", dil:""},
@@ -1663,7 +1665,7 @@ function renderLib(){
     chip.className = 'med-chip';
     chip.textContent = '+ ' + m.name;
     chip.title = [m.dose, m.via].filter(Boolean).join(' — ');
-    chip.onclick = ()=> addMed(m.name, m.dose, m.via, m.dil||'');
+    chip.onclick = ()=> addMed(m.name, m.dose, m.via, m.dil||'', m.aprazo||'AGORA', m.obs||'');
     lib.appendChild(chip);
   });
   emptyMsg.style.display = filtered.length ? 'none' : 'block';
@@ -1700,8 +1702,8 @@ function viaOptionsFor(via){
   return opts;
 }
 
-function addMed(name, dose='', via='EV', dil=''){
-  meds.push({id:'m'+(medSeq++), name, dose, via: viaPrimaria(via), dil, useDil:false, aprazo:'AGORA', obs:'', ord: nextOrd()});
+function addMed(name, dose='', via='EV', dil='', aprazo='AGORA', obs=''){
+  meds.push({id:'m'+(medSeq++), name, dose, via: viaPrimaria(via), dil, useDil:false, aprazo, obs, ord: nextOrd()});
   renderMeds();
 }
 
