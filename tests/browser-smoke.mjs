@@ -86,6 +86,22 @@ for(const termo of ['Clopidogrel 75mg','Paracetamol 500mg','Brometo de ipratróp
   await clean.locator('#medSearch').fill(termo);
   assert.ok((await clean.locator('#medLib .med-chip').count())>0,'Encontrou '+termo);
 }
+// Cenário de paginação: 28 itens fictícios, todos devem continuar no DOCX editável.
+const stress=await context.newPage();
+stress.on('pageerror',e=>errors.push('stress: '+e.message));
+await stress.goto(pathToFileURL(resolve('index.html')).href,{waitUntil:'domcontentloaded'});
+await stress.locator('#pName').fill('PACIENTE TESTE PAGINACAO');
+await stress.evaluate(()=>{
+  for(let i=1;i<=28;i++){
+    addMed('MEDICAÇÃO DE TESTE '+i+' — verificar identificação e registro',
+      '1 unidade conforme prescrição fictícia nº '+i,'VO','');
+  }
+});
+await stress.locator('.desk-top-actions .desk-top-btn').filter({hasText:'Salvar Word'}).click();
+const stressDownloadPending=stress.waitForEvent('download');
+await stress.locator('#reviewPrintBtn').click();
+const stressDownload=await stressDownloadPending;
+await stressDownload.saveAs(resolve(dir,'prescricao-28-itens.docx'));
 assert.deepEqual(errors,[]);
 await browser.close();
 console.log('Navegador QA: BIC, Word, ceftriaxona, GIF, PDF paisagem e ausência de erros JS aprovados.');
