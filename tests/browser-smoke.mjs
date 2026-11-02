@@ -1,0 +1,63 @@
+import assert from 'node:assert/strict';
+import {resolve} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {mkdirSync} from 'node:fs';
+import {chromium} from 'playwright-core';
+
+const dir=resolve('artifacts/qa');
+mkdirSync(dir,{recursive:true});
+const chrome=process.env.CHROME_BIN || '/usr/bin/google-chrome';
+const browser=await chromium.launch({headless:true,executablePath:chrome,args:['--no-sandbox','--disable-dev-shm-usage','--allow-file-access-from-files']});
+const context=await browser.newContext({viewport:{width:1440,height:1000},acceptDownloads:true});
+const page=await context.newPage(),errors=[];
+page.on('pageerror',e=>errors.push('app: '+e.message));
+await page.goto(pathToFileURL(resolve('index.html')).href,{waitUntil:'domcontentloaded'});
+await page.locator('#bicMedicamento').waitFor({timeout:20000});
+await page.locator('#pName').fill('PACIENTE TESTE QA');
+await page.locator('#pAge').fill('44 anos');
+await page.locator('#pDoc').fill('000.000.000-00');
+await page.locator('#bicMedicamento').selectOption('midazolam');
+await page.locator('#bicConcentracao').selectOption('2');
+await page.locator('#bicVelocidade').fill('1,5');
+await page.locator('#bicAdicionar').click();
+assert.match(await page.locator('#medList').innerText(),/Midazolam/);
+assert.match(await page.locator('#medList').innerText(),/2 mg\/mL/);
+await page.locator('#medSearch').fill('Ceftriaxona');
+await page.locator('#medLib .med-chip').filter({hasText:'Ceftriaxona 1g'}).first().click();
+assert.match(await page.locator('#medList').innerText(),/Ceftriaxona 1g/);
+await page.screenshot({path:resolve(dir,'prescricao-1g-bic.png'),fullPage:false});
+
+// Word é realmente um download e não uma caixa de impressão renomeada.
+await page.locator('.desk-top-actions .desk-top-btn').filter({hasText:'Salvar Word'}).click();
+const pendingDownload=page.waitForEvent('download');
+await page.locator('#reviewPrintBtn').click();
+const download=await pendingDownload;
+assert.match(download.suggestedFilename(),/\.docx$/);
+await download.saveAs(resolve(dir,'prescricao-qa.docx'));
+
+// Impressão da ceftriaxona deve gerar duas abas, em sequência, com o cartão em paisagem
+// na primeira e o formulário GIF em retrato na segunda.
+const pages=[];
+context.on('page',p=>{if(p!==page)pages.push(p);});
+await page.locator('.desk-top-actions .desk-top-btn.primary').click();
+await page.locator('#reviewPrintBtn').click();
+await page.waitForTimeout(2400);
+assert.ok(pages.length>=2, 'Esperadas abas independentes para a prescrição e GIF');
+const html1=await pages[0].content(),html2=await pages[1].content();
+assert.match(html1,/cefCardSheet/);
+assert.match(html2,/gifSheet1/);
+await pages[0].pdf({path:resolve(dir,'prescricao-e-cartao.pdf'),preferCSSPageSize:true,printBackground:true});
+await pages[1].pdf({path:resolve(dir,'ficha-gif.pdf'),preferCSSPageSize:true,printBackground:true});
+await pages[0].screenshot({path:resolve(dir,'preview-impressao-paisagem.png'),fullPage:false});
+await pages[1].screenshot({path:resolve(dir,'preview-gif-retrato.png'),fullPage:false});
+
+// Sem ceftriaxona, não cabe cartão de controle de dose.
+const clean=await context.newPage();
+clean.on('pageerror',e=>errors.push('limpo: '+e.message));
+await clean.goto(pathToFileURL(resolve('index.html')).href,{waitUntil:'domcontentloaded'});
+await clean.locator('#medLib').waitFor();
+assert.equal(await clean.evaluate(()=>temCeftriaxona()),false);
+assert.equal(await page.evaluate(()=>temCeftriaxona()),true);
+assert.deepEqual(errors,[]);
+await browser.close();
+console.log('Navegador QA: BIC, Word, ceftriaxona, GIF, PDF paisagem e ausência de erros JS aprovados.');
