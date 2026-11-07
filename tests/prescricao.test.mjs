@@ -37,8 +37,8 @@ function mockBIC(){
     bicMedicamento:'midazolam',bicConcentracao:'0',bicVelocidade:'',
     bicMensagem:'',bicAdicionar:''
   })) byId[id]=el(id,value);
-  const host={insertBefore(node){byId[node.id]=node;}};
-  const card={querySelector(){return {textContent:'Medicações Isoladas'}},parentNode:host};
+  const host={insertBefore(node,before){byId[node.id]=node;byId.__insertionBefore=before;}};
+  const card={nextSibling:{id:'medidasCard'},querySelector(){return {textContent:'Medicações Isoladas'}},parentNode:host};
   const document={readyState:'complete',querySelectorAll(){return [card];},
     getElementById(id){return byId[id];},createElement(){return {
       id:'',innerHTML:'',querySelector(sel){return byId[sel.slice(1)]}
@@ -47,6 +47,14 @@ function mockBIC(){
   vm.runInNewContext(bic,{document,meds,addMed,renderMeds:()=>{}});
   return {byId,handlers,meds};
 }
+
+test('seção BIC fica após medicações isoladas e inicia recolhida',()=>{
+  const {byId}=mockBIC();
+  assert.equal(byId.__insertionBefore.id,'medidasCard');
+  assert.match(byId.bicCard.innerHTML,/<details id="bicDetails">/);
+  assert.match(byId.bicCard.innerHTML,/<summary[^>]*>Infusão contínua · BIC/);
+  assert.doesNotMatch(byId.bicCard.innerHTML,/<details[^>]*\sopen(?:\s|=|>)/);
+});
 
 test('seis preparos BIC produzem concentração, volume final, EV e mL/h corretos',()=>{
   const {byId,handlers,meds}=mockBIC();
