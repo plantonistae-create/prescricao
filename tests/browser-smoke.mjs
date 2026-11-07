@@ -29,6 +29,9 @@ const bicGerada=await page.evaluate(()=>meds.find(m=>/Midazolam — BIC/.test(m.
 assert.ok(bicGerada,'BIC foi adicionada ao estado do formulário');
 assert.match(bicGerada.dose,/2 mg\/mL/);
 assert.match(bicGerada.aprazoTexto,/1,5 mL\/h/);
+await page.locator('#bicDetails summary').click();
+assert.equal(await page.locator('#bicDetails').evaluate(el=>el.open),false,'BIC recolhe após adição');
+assert.ok(await page.evaluate(()=>meds.some(m=>/Midazolam — BIC/.test(m.name))),'recolher preserva item prescrito');
 await page.locator('#medSearch').fill('Ceftriaxona');
 await page.locator('#medLib .med-chip').filter({hasText:'Ceftriaxona 1g'}).first().click();
 assert.ok(await page.evaluate(()=>meds.some(m=>m.name==='Ceftriaxona 1g')),'ceftriaxona adicionada ao estado');
