@@ -63,7 +63,9 @@
     const card=document.createElement('div');
     card.id='bicCard';card.className='card';
     card.innerHTML=[
-      '<h2>Infusão contínua · BIC</h2>',
+      '<details id="bicDetails">',
+      '<summary style="cursor:pointer; padding:4px 0; font-size:16px; font-weight:700;">Infusão contínua · BIC <span style="font-size:12px; font-weight:400; color:var(--slate);">— Midazolam e fentanil</span></summary>',
+      '<div style="padding-top:12px;">',
       '<div class="card-note">Atalho de preparo para <strong>midazolam</strong> e <strong>fentanil</strong>. As concentrações são as informadas pelo serviço. Nenhuma velocidade é sugerida; confirme a prescrição, a concentração e o preparo antes da administração.</div>',
       '<div class="field"><label>Medicação</label><select id="bicMedicamento">',
       '<option value="midazolam">Midazolam — ampola de 10 mL a 5 mg/mL</option>',
@@ -72,9 +74,11 @@
       '<div class="field"><label>Velocidade prescrita (mL/h)</label>',
       '<input id="bicVelocidade" type="text" inputmode="decimal" autocomplete="off" placeholder="Informe a velocidade em mL/h"></div>',
       '<button class="btn btn-teal" type="button" id="bicAdicionar">+ Adicionar BIC à prescrição</button>',
-      '<div id="bicMensagem" class="card-note" role="status" aria-live="polite" style="margin-top:8px;"></div>'
+      '<div id="bicMensagem" class="card-note" role="status" aria-live="polite" style="margin-top:8px;"></div>',
+      '</div>',
+      '</details>'
     ].join('');
-    destino.parentNode.insertBefore(card,destino);
+    destino.parentNode.insertBefore(card,destino.nextSibling);
     card.querySelector('#bicMedicamento').addEventListener('change',atualizarOpcoesBIC);
     card.querySelector('#bicAdicionar').addEventListener('click',adicionarBIC);
     atualizarOpcoesBIC();
