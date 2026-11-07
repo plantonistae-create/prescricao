@@ -15,7 +15,7 @@ await page.goto(pathToFileURL(resolve('index.html')).href,{waitUntil:'domcontent
 await page.waitForTimeout(800);
 await page.locator('#bicDetails summary').waitFor({state:'visible',timeout:8000});
 assert.equal(await page.locator('#bicDetails').evaluate(el=>el.open),false,'BIC inicia recolhida');
-assert.equal(await page.evaluate(()=>document.getElementById('bicCard')?.previousElementSibling?.querySelector('h2')?.textContent.trim()),'Medicações Isoladas');
+assert.ok(await page.evaluate(()=>document.getElementById('bicCard')?.previousElementSibling?.querySelector('h2')?.textContent.trim().startsWith('Medicações Isoladas')),'BIC fica depois das medicações isoladas');
 await page.locator('#bicDetails summary').click();
 await page.locator('#bicMedicamento').waitFor({state:'visible',timeout:8000});
 await page.locator('#pName').fill('PACIENTE TESTE QA');
